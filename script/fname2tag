@@ -1,0 +1,143 @@
+#!/usr/bin/perl
+
+use Switch;
+use Encode;
+use utf8;
+
+use TagTools qw(:DEFAULT $DEFAULT_CHARSET $VERSION);
+
+use Audio::TagLib;
+
+######################################################################################
+sub displayHelp {
+    print "fname2tag v$VERSION by V.Korol (vasya_korol2000@yahoo.com)\n";
+    print "  * Extracts info from the name of an MP3/OGG file using the specified pattern format\n";
+    print "    and updates corresponding audio format tag fields.\n";
+    print "  * Requires packages id3v2 and recode installed for MP3 support and vorbistools for OGG.\n";
+    print " Syntax:  fname2tag -f FORMAT [-c CHARSET] file1 file2 ..\n";
+    print "    Options:\n";
+    print "     -f FORMAT : Use the specified format. The following variables are allowed:\n";
+    print "		\%a - artist, \%t - title, \%b - album, \%n - track no.,\n";
+    print "		\%y - year, \%c - comment, \%u - useless.\n";
+    print "     -c CHARSET : Read tags in specified charset. CHARSET should be one of\n";
+    print "		charmaps known by your system (see locale -m for the full list).\n";
+    print "		If omitted, the charset is the same as the default one specified in\n";
+    print "		your locale.\n";
+    print " Example: fname2tag -f \"\%a - \%n.\%t\" -c CP1251 somefile.mp3\n";
+    exit;
+}
+
+
+######################################################################################
+############    MAIN:           ######################################################
+
+displayHelp() if(@ARGV==0);
+
+
+$format="";
+$format_next=0;
+$charset="";
+$charset_next=0;
+$num_of_files=0;
+
+foreach $arg(@ARGV){
+
+     if ($arg eq "-f"){	# -f FORMAT option: use specified format
+      $format_next=1;
+      next;
+     }
+     if ($format_next){	#    get the format specified after the -f option
+      $format=$arg;
+      $format_next=0;
+      next;
+     } 
+     if ($arg eq "-c"){	# -c CHARSET option: use specified charset
+      $charset_next=1;
+      next;
+     }
+     if ($charset_next){	#    get the charset specified after the -c option
+      $charset = TagTools::initCharset($arg);
+      $charset_next=0;
+      next;
+     }
+    ######################################################################################
+
+    $num_of_files++;
+
+    # Consider anything rather than "-x" as audio file name: 
+    $file = $arg;
+
+
+    die("Error: FORMAT not specified - use the '-f' option! Run fname2tag without arguments for help.\n") if($format eq "");
+
+
+    ######################################################################################
+     print "processing \"$file\".";
+
+    if(!(-e $file)){
+        print ".  file not found!\n";
+        next;
+    };
+    ######################################################################################
+
+
+    my $f = Audio::TagLib::FileRef->new($file);
+
+
+    ###### examine the format string and convert it into match pattern: ##########
+    $pattern=$format;
+    $pattern=~s/([^\w\d\%\s])/\\$1/g;
+    $pattern=~s/\s/\\\s/g;
+
+    $n=0;
+    while ($format=~m/\%(\w)/g){
+     $symbol=$1;
+     $chars_array[$n]=$symbol;
+     switch ($symbol){
+      case "n"	{ $pattern=~s/\%\w/\(\\d\+\)/; }	# match only digits for %n
+      case "u"	{ $pattern=~s/\%\w/\(\.\+\?\)/; }	# non-greedy match (as few as possible) for %u
+      else 	{ $pattern=~s/\%\w/\(\.\+\)/; }
+     }
+     $n++;
+    }
+    $pattern.="\$";
+
+
+    ####### Now extract data from filename using the pattern constructed in specified format:
+    $file_noext=$file;
+    $file_noext=~s/\.[\w\d]+$//;	#remove file extension
+    $_=$file_noext;
+    @results=/$pattern/g;
+
+
+    ####### Update tags:
+     my $wrong_format = 0;
+    for ($n=0;$n<@results;$n++){
+        Encode::from_to($results[$n], "$DEFAULT_CHARSET", "$charset") if ($charset ne $DEFAULT_CHARSET);
+        $results[$n]=~s/[\n\r]$//;
+
+      switch ($chars_array[$n]) {
+        case "a"	{ $f->tag()->setArtist  (Audio::TagLib::String->new($results[$n])); }
+        case "t"	{ $f->tag()->setTitle   (Audio::TagLib::String->new($results[$n])); }
+        case "b"	{ $f->tag()->setAlbum   (Audio::TagLib::String->new($results[$n])); }
+        case "c"	{ $f->tag()->setComment (Audio::TagLib::String->new($results[$n])); }
+        case "y"	{ $f->tag()->setYear    ($results[$n]); }
+        case "n"	{ $f->tag()->setTrack   ($results[$n]); }
+        case "u"	{ next; }
+        else 	{ $wrong_format = 1; }
+      }
+    }
+
+    if ($wrong_format) {
+     print "..  no data read - wrong format for this filename?\n";
+     next;
+    }
+
+
+    $f->save();
+
+    print "  done\n";
+
+} 
+
+displayHelp() if(($num_of_files == 0) && (@ARGV!=0));

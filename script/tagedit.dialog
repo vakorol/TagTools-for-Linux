@@ -1,0 +1,126 @@
+#!/usr/bin/perl
+# tagedit
+#  MP3 utils for linux - v0.41
+#  V.Korol 2011
+############################## 
+
+use Cwd;
+use Encode;
+
+use TagTools qw(:DEFAULT $DEFAULT_CHARSET);
+
+use UI::Dialog::Backend::CDialog;
+use Audio::TagLib;
+use utf8;
+
+######################################################################################
+sub displayHelp {
+ print 'tagedit.dialog v$VERSION by V.Korol (vakorol@mail.ru).';
+ print "\n A script for dialog-based audio tag editing.\n";
+ print " Usage:  [-c CHARSET] tagedit <AUDIO_FILE>\n";
+ print "     -c CHARSET : Read tags in specified charset. CHARSET should be one of\n";
+ print "		charmaps known by your system (see locale -m for the full list).\n";
+ print "		If omitted, the charset is $DEFAULT_CHARSET.\n";
+ print "	       Example:  tag2edit -c CP1251 somefile.mp3\n";
+}
+
+
+######################################################################################
+############################### MAIN: ################################################
+
+my $charset="";
+my $charset_next=0;
+$num_of_files=0;
+
+foreach my $arg (@ARGV){
+
+    if ($arg eq "-c"){	# -c CHARSET option: use specified charset
+      $charset_next=1;
+      next;
+     }
+     if ($charset_next){	#    get the charset specified after the -c option
+      $charset = TagTools::initCharset($arg);
+      $charset_next=0;
+      next;
+     }
+     next if ($arg=~m/^\-/);	# unknown option
+
+    # any command-line argument rather than "-x" will be considered an audio file name:
+    $file=$arg;
+
+    $num_of_files++;
+
+    $file=~m/(\.[\w\d]+)$/;  # save the file extension
+    my $extension=$1;
+
+    if(!(-e $file)){
+        print "File not found!\n";
+        next;
+    }
+
+
+    my $f = Audio::TagLib::FileRef->new($file);
+
+    ## read tags:
+    $tag_ref = readTag($f, $charset);
+    ($title, $artist, $album, $year, $track, $genre, $comment) = @$tag_ref;
+
+
+    my $backtitle = getcwd();
+
+    my $short_filename = $file;
+    $short_filename =~ s/^.+?\/([^\/]+)$/$1/;  #extract only the filename from the full path
+
+
+    $audio_length  = $f->audioProperties()->length();
+    $audio_bitrate = $f->audioProperties()->bitrate();
+    $audio_sample  = $f->audioProperties()->sampleRate();
+     @full_length = gmtime($audio_length);
+     $length_mins = $full_length[1];
+     $length_secs = $full_length[0];
+
+    ###################     INIT THE DIALOG        ###########################################
+      my $d = new UI::Dialog::Backend::CDialog ( backtitle => "$backtitle",
+                                                 title => "Edit tags" );
+
+      @data = $d->form( text => "$short_filename\n Length: $length_mins:$length_secs\n Bitrate: $audio_bitrate kb/sec,  $audio_sample Hz",
+		       literal => 1,
+		       height => 17,
+		       width => 55,
+		       formheight => 7,
+                       list => [ [ 'Title:',   1, 1 ], [ "$title",   1, 10, 39, 80 ],
+                                 [ 'Artist:',  2, 1 ], [ "$artist",  2, 10, 39, 80 ],
+                                 [ 'Album:',   3, 1 ], [ "$album",   3, 10, 39, 80 ],
+                                 [ 'Year:',    4, 1 ], [ "$year",    4, 10, 39, 80 ],
+                                 [ 'Track:',   5, 1 ], [ "$track ",  5, 10, 39, 80 ],
+                                 [ 'Genre:',   6, 1 ], [ "$genre",   6, 10, 39, 80 ],
+                                 [ 'Comment:', 7, 1 ], [ "$comment", 7, 10, 39, 80 ] ]
+                      );
+
+     next if (!defined(@data) || (scalar @data == 1));
+
+
+    ##  Encode the data back to $charset:
+    if ($charset ne $DEFAULT_CHARSET) {
+        foreach $item(@data){
+		Encode::from_to($item, "$DEFAULT_CHARSET", "$charset");
+        }
+    }
+
+    ($title, $artist, $album, $year, $track, $genre, $comment) = @data;
+
+
+     ## Run it!
+    $f->tag()->setTitle  ( Audio::TagLib::String->new($title)   );
+    $f->tag()->setArtist ( Audio::TagLib::String->new($artist)  );
+    $f->tag()->setAlbum  ( Audio::TagLib::String->new($album)   );
+    $f->tag()->setGenre  ( Audio::TagLib::String->new($genre)   );
+    $f->tag()->setComment( Audio::TagLib::String->new($comment) );
+    $f->tag()->setYear   ( $year  );
+    $f->tag()->setTrack  ( $track );
+
+    $f->save();
+
+}
+
+displayHelp() if ($num_of_files==0);

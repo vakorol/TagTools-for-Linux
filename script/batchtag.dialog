@@ -1,0 +1,142 @@
+#!/usr/bin/perl
+# batch.dialog
+#  MP3 utils for linux - v0.41
+#  V.Korol 2011
+############################## 
+
+use Cwd;
+use Encode;
+use utf8;
+
+use TagTools qw(:DEFAULT $VERSION $DEFAULT_CHARSET $COOKIE_FILE);
+
+use UI::Dialog::Backend::CDialog;
+use Audio::TagLib;
+
+
+######################################################################################
+sub displayHelp {
+ print "batchtag.dialog v$VERSION by V.Korol (vakorol@mail.ru) -\n";
+ print "A script for dialog-based batch tag creation. Allows to fill several tag fields for\n";
+ print "a given list of audio files with input strings, or extract tags from filenames, using\n";
+ print "a specified format.\n";
+ print "The following variables in the format string are allowed:\n";
+ print "%a - artist, %t - title, %b - album, %n - track no.,\n";
+ print "%y - year, %c - comment, %u - useless.\n";
+ exit;
+}
+
+
+######################################################################################
+
+$file = $ARGV[0];
+displayHelp() if(!defined($file) || ($file eq ""));
+
+
+## Check for cookie file:
+$batchtag_last_artist = "";
+$batchtag_last_album = "";
+$batchtag_last_format = "";
+$batchtag_last_year = "";
+$batchtag_last_charset = "";
+(-r $COOKIE_FILE) ? require "$COOKIE_FILE" : print "$COOKIE_FILE cannot be read, does it exist?";
+
+
+my $f = Audio::TagLib::FileRef->new($file);
+
+
+## get tech info (length and bitrate):
+$audio_length  = $f->audioProperties()->length();
+$audio_bitrate = $f->audioProperties()->bitrate();
+$audio_sample  = $f->audioProperties()->sampleRate();
+ @full_length = gmtime($audio_length);
+ $length_mins = $full_length[1];
+ $length_secs = $full_length[0];
+
+
+$backtitle=getcwd();
+$short_filename = $file;
+$short_filename =~ s/^.+?\/([^\/]+)$/$1/;  #extract only the filename from the full path
+
+
+###################     INIT THE DIALOG        ###########################################
+  my $d = new UI::Dialog::Backend::CDialog ( backtitle => "$backtitle",
+                                             title => "Batch tag edit" );
+
+  my @data = $d->form( text => "$short_filename\n Length: $length_mins:$length_secs\n Bitrate: $audio_bitrate kb/sec,  $audio_sample Hz",
+		       literal => 1,
+		       height => 18,
+		       width => 51,
+		       formheight => 8,
+                       list => [ [ 'Artist:',  			  1, 1 ], [ "$batchtag_last_artist",  1, 10, 35, 0 ],
+                                 [ 'Album:',   			  2, 1 ], [ "$batchtag_last_album",   2, 10, 35, 0 ],
+                                 [ 'Year:',    			  3, 1 ], [ "$batchtag_last_year",    3, 10, 35, 0 ],
+                                 [ 'Genre:',   			  4, 1 ], [ "", 		      4, 10, 35, 0 ],
+                                 [ 'Comment:', 			  5, 1 ], [ "", 		      5, 10, 35, 0 ],
+                                 [ 'Extract tags from filename:', 6, 1 ], [ "$batchtag_last_format",  7, 1,  44, 0 ],
+                                 [ 'Charset:', 			  8, 1 ], [ "$batchtag_last_charset", 8, 10, 25, 0 ] ]
+                    );
+
+ exit if (!defined(@data) or (scalar @data == 1));
+
+
+  # correct the spaces bug from CDialog - remove traling spaces:
+  foreach $item(@data){
+    $item =~ s/\s+$//;
+  }
+
+
+ ($artist, $album, $year, $genre, $comment, $format, $charset) = @data;
+
+  $not_all_fields_empty=$artist.$album.$year.$genre.$comment;
+
+
+$charset = TagTools::initCharset($charset);
+($charset ne $DEFAULT_CHARSET) ? $recode_option="-c $charset" : $recode_option="";
+
+ ## store recoded tags:
+  ($rec_artist,$rec_album,$rec_year,$rec_comment,$rec_genre) = ($artist,$album,$year,$comment,$genre); 
+  if ($charset ne $DEFAULT_CHARSET) {
+      Encode::from_to($rec_artist,"$DEFAULT_CHARSET","$charset");
+      Encode::from_to($rec_album,"$DEFAULT_CHARSET","$charset");
+      Encode::from_to($rec_year,"$DEFAULT_CHARSET","$charset");
+      Encode::from_to($rec_comment,"$DEFAULT_CHARSET","$charset");
+      Encode::from_to($rec_genre,"$DEFAULT_CHARSET","$charset");
+  }
+
+
+$format =~ s/^\s+//;
+$format =~ s/\s+$//;
+
+
+ $fname2tag_command = "fname2tag -f \"$format\" $recode_option ";
+foreach $file (@ARGV) {
+    print "processing $file";
+
+    ## run fname2tag if format specified
+    if ($format ne ""){
+        print ".";
+        `$fname2tag_command \"$file\"`;
+    }
+
+    # Then, update individual tags:
+      print ".";
+
+     $f = Audio::TagLib::FileRef->new($file);
+      $f->tag()->setArtist  ( Audio::TagLib::String->new( $rec_artist  )) if ($artist  ne "");
+      $f->tag()->setAlbum   ( Audio::TagLib::String->new( $rec_album   )) if ($album   ne "");
+      $f->tag()->setComment ( Audio::TagLib::String->new( $rec_comment )) if ($comment ne "");
+      $f->tag()->setGenre   ( Audio::TagLib::String->new( $rec_genre   )) if ($genre   ne "");
+      $f->tag()->setYear    ( $rec_year ) if ($year ne "");
+     $f->save() if($not_all_fields_empty ne "");
+
+      print "   done\n";
+}
+
+
+# Finally, update the settings in the cookie file:
+TagTools::updateCookieFile("batchtag_last_format=$format",
+		 "batchtag_last_charset=$charset",
+		 "batchtag_last_artist=$artist",
+		 "batchtag_last_album=$album",
+		 "batchtag_last_year=$year");

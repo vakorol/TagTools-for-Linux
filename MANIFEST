@@ -1,0 +1,11 @@
+Changes
+Makefile.PL
+MANIFEST
+README.english
+README.russian
+lib/TagTools.pm
+script/batchtag.dialog
+script/fname2tag
+script/tag2fname
+script/tag2fname.dialog
+script/tagedit.dialog

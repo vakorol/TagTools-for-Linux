@@ -1,0 +1,67 @@
+v0.41  (21 Oct 2011):
+ ! fixed a bug when trailing spaces were added to all tag fields displayed by UI::Dialog::Backend::CDialog::form(),
+   thus sometimes resulting in tag erasure in batchtag.dialog;
+ + Installation via Makefile;
+ = some code optimization done;
+--------------------------------------------------------------------------
+v0.40b (03 Oct 2011):
+ + More formats support :  flac, ape, wav etc. The scripts now compose a shell for the Audio::TagLib module;
+ = got rid of the dependencies on packages "id3v2", "mp3info", "vorbistools" and the Locale::Recode Perl module
+   (but introduced a new dependency on Audio::TagLib module);
+ = Some code enhancements - the scripts are now smaller and a bit faster.
+--------------------------------------------------------------------------
+v0.30a (12 Sep 2011):
+ + added OGG Vorbis tags support via vorbistools;
+ = everything rewritten in perl (got rid of clumsy bash & sed constructions, but an a dependency on perl modules
+				 UI::Dialog and Locale::Recode appeared. );
+ ! fixed a bug in batchtag which disallowed processing of single quotes in tag fields;
+ ! fixed a bug in tag2fname which caused a %n in format string to output a 1-digit tracknumber instead of adding a 
+    leading zero, when handling tracknum like 5/13 and vice versa;
+ ! more improvements on handling the format variables logic in fname2tag;
+ ! fixed a bug in tag2fname related to some errors when running recode, resulting in 
+    "XX.Unknown Artist - Untitled.mp3.mp3" output;
+ ! fixed a bug in tagedit which caused the dialog to show corrupt data in some tag fields;
+ + tagedit and batchtag now show the length and bitrate of the mp3 file (via new dependency on package mp3info);
+ ! fixed a small bug with tagedit sometimes displaying the full path to file instead of just the filename in the dialog info;
+ ! more bugfixes on special symbols handling in tag2fname;
+ ! fixed a bug with last symbol of all tag fields being stripped off by fname2tag if run with no "-c" option;
+ + some not-so-important messages added to batchtag.dialog.
+--------------------------------------------------------------------------
+v0.23 (19 Mar 2011):
+ - added homedir cookie file ~/.audiotagtools to remember last dialogs choices;
+ - added a command-line option in fname2tag, tag2fname, tagedit.dialog and a dialog input field in batchtag.dialog
+    and tag2fname.dialog for charset selection (not only cp1251);
+ - path to current directory is now echoed in the backtitle, first selected file name displayed in the head 
+    of each dialog window;
+ - added help messages to all scripts;
+ - fixed the "first space" bug in fname2tag which caused filenames such as "09 Grease Monkey.mp3" result in
+    incorrect tag fields filling when used with -f "%n %t" option);
+ - fixed a bug in tag2fname related to tracknumber field containing non-digit character
+    (e.g., 13/15 instead of just 13);
+ - fixed a bug in tag2fname, which caused a crash on files with "/" in tags;
+ - fixed a bug in tagedit.dialog related to duplicate ID3v2 tag fields (TIT/TT etc);
+ - fixed a bug in tagedit.dialog related to consequent spaces in filenames;
+ - improved logic with handling format %d and %u variables in fname2tag;
+--------------------------------------------------------------------------
+v0.22 (08 Mar 2011) - Added fname2tag and batchtag.dialog scripts, fixed several bugs. All five scripts seem
+		     to work!
+--------------------------------------------------------------------------
+v0.21 (06 Mar 2011) - Added script 'tagedit' for dialog-based tag editing.
+--------------------------------------------------------------------------
+v0.2 (23 Feb 2011) - CP-1251 Russian tags support; %d option changed to %f - defines output filename format;
+		     now handles both id3v1 and v2 tags (prefer v2 to v1); proper handling of all special
+		     characters in filenames.
+--------------------------------------------------------------------------
+v0.1 (?? Feb 2011) - Can rename files using two fixed formats, uses id3tool to extract and update tags.
+
+
+
+
+---------------------------------------------------------------------------
+TODO:
+ - do something with the "-u" option in tag2fname (does nothing currently);
+ - batchtag.dialog and tag2fname.dialog shouldn't crash on incorrect .audiotagtools syntax;
+ - tag2fname.dialog shouldn't start if the files don't exist (or should it??);
+ - catch all error messages;
+ - try to fix a strange issue with UI::Dialog::Backend::CDialog::form() crashing on field value equal to "--" (wtf?!)
+ - expand to XDialog;

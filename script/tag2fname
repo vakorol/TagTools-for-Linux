@@ -1,0 +1,139 @@
+#!/usr/bin/perl
+
+use Encode;
+use utf8;
+
+use TagTools qw(:DEFAULT $DEFAULT_CHARSET $VERSION);
+use Audio::TagLib;
+
+######################################################################################
+sub displayHelp {
+    print "tag2fname v$VERSION by V.Korol (vakorol@mail.ru)\n";
+    print "  * Renames a list of audio files using the information from audio meta tags.\n";
+    print " Syntax:  tag2fname [options] file1 file2 ..\n";
+    print "    Options:\n";
+    print "     -f FORMAT : Use the specified format. The following variables are allowed:\n";
+    print "		\%a - artist, \%t - title, \%b - album, \%n - track no.,\n";
+    print "		\%y - year, \%c - comment.\n";
+    print "		If not specified, the default format is \"%a - %t\".";
+    print "        Example:  tag2fname -f \"\%a - \%n.\%t\" somefile.mp3\n";
+    print "     -u : process files with empty tags and create output files such as\n";
+    print "          \"Unknown Artist - XX.Untitled\". Otherwise do not rename at all.\n";
+    print "     -c CHARSET : Read tags in specified charset. CHARSET should be one of\n";
+    print "		charmaps known by your system (see locale -m for the full list).\n";
+    print "		If omitted, the charset is the same as the default one specified in\n";
+    print "		your locale.\n";
+    print "	       Example:  tag2fname -c CP1251 somefile.mp3\n";
+    print "     -k : keep the original file; copy instead of rename\/move\n";
+}
+
+
+######################################################################################
+############################### MAIN: ################################################
+
+my $PROCESS_UNTAGGED=0;	# do not rename untagged files by default
+my $KEEP_ORIGINAL=0;	# delete the original file (rename instead of copy) by default
+
+my $format="%a - %t";	# default format for the output filename
+
+my $format_next=0;
+my $charset="";
+my $charset_next=0;
+$num_of_files=0;
+
+foreach my $arg (@ARGV){
+
+     if ($arg eq "-k"){    # -k option: keep the original file; copy instead
+      $KEEP_ORIGINAL=1;     #            of rename/move
+      next;
+     }
+     if ($arg eq "-u"){	# -u option: process files with empty tags and create
+      $PROCESS_UNTAGGED=1;	#	     output files such as
+      next;			#	     "Unknown Artist - XX.Untitled". Otherwise
+     }			#	     do not rename at all.
+     if ($arg eq "-f"){	# -f FORMAT option: use specified
+      $format_next=1; #	     filename.
+      next;
+     }
+     if ($format_next){	#    get the format specified after the -f option
+      $format=$arg;
+      $format_next=0;
+      next;
+     }
+     if ($arg eq "-c"){	# -c CHARSET option: use specified charset
+      $charset_next=1;
+      next;
+     }
+     if ($charset_next){	#    get the charset specified after the -c option
+      $charset = TagTools::initCharset($arg);
+      $charset_next=0;
+      next;
+     }
+     if ($arg=~m/^\-/){	# unknown option
+      next;
+     }
+
+    # Consider anything rather than "-x" as and audio file name:
+    $file = $arg;
+
+    $num_of_files++;
+
+    $file=~m/(\.[\w\d]+)$/;  # save the file extension
+    my $extension=$1;
+
+
+    ######################################################################################
+     print "processing \"$file\".";
+
+    if(!(-e $file)){
+        print ".  file not found!\n";
+        next;
+    }
+
+    my $f = Audio::TagLib::FileRef->new($file);
+
+
+    ## read tags:
+    $tag_ref = readTag($f, $charset);
+    ($title, $artist, $album, $year, $track, $genre, $comment) = @$tag_ref;
+
+
+     $track=~s/[^\d]+.+//;   # convert smth like  5/13 to 5
+     $track="0".$track if(length($track)==1);
+
+#    if ($PROCESS_UNTAGGED) {
+        $title="Untitled" if ($title eq "");
+        $artist="Unknown Artist" if ($artist eq "");
+        $track="XX" if ($track eq "");
+        $album="No album" if ($album eq "");
+        $year="XXXX" if ($year eq "");
+        $genre="Undefined" if ($genre eq "");
+#    };
+
+
+    $action = $KEEP_ORIGINAL ? "cp" : "mv";
+
+
+    $newfname=$format.$extension;
+    $newfname=~s/\%a/$artist/g;
+    $newfname=~s/\%t/$title/g;
+    $newfname=~s/\%b/$album/g;
+    $newfname=~s/\%n/$track/g;
+    $newfname=~s/\%g/$genre/g;
+    $newfname=~s/\%y/$year/g;
+
+    $newfname=~s/([\\\/\"\`\'\?])/_/g; 	#` <-this backquote is for proper colors display in mc-edit :)
+
+
+    if($file eq $newfname){
+     print "  filename already in desired format, skipping.\n";
+     next;
+    }
+
+       system("$action \"$file\" \"$newfname\"") if(!(($artist eq "")&&($title eq "")));
+
+    print "  done\n";
+
+}
+
+displayHelp() if($num_of_files==0);
