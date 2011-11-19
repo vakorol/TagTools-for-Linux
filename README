@@ -1,0 +1,108 @@
+TagTools version 0.41
+=====================
+
+TagTools is a package of scripts which can be used to manipulate
+audio tags of various audio formats (MP3, OGG, FLAC etc). In fact,
+it is an implementation of the Audio::TagLib library 
+(http://search.cpan.org/dist/Audio-TagLib/lib/Audio/TagLib.pm),
+and provides it with a command-line and dialog-based interface.
+TagTools should also work correctly with tags written in different 
+codepages (utf8, cp1251 etc).
+
+The following scripts are included:
+
+  tag2fname	    - this is a command-line tool to rename a number of
+		      files using the information extracted from audio
+		      tags in a specified format. Run the command without 
+		      options for help.
+
+  tag2fname.dialog  - a dialog-based gui for tag2fname. Run the command without 
+		      options for help.
+
+  fname2tag	    - another command-line tool to convert file names
+		      into audiotags using a specified format. Run the 
+		      command without options for help.
+
+  batchtag.dialog   - a dialog-based tool for batch tag creation. Can
+		      update individual tag fields (artist, title, year etc),
+		      or runs fname2tag with a specified format. Run the 
+		      command without options for help.
+
+  tagedit.dialog    - this script provides a dialog-based tag editing.  Run the 
+		      command without options for help.
+
+
+-------------------------
+INSTALLATION
+
+To install the package type the following:
+
+   perl Makefile.PL
+   make
+   make install
+
+You can run the installed scripts directly from the command line, or bind the
+commands to the appropriate actions in your file manager.
+For Midnight Commander, add something like the listing below to the ~/config/mc/mc.ext 
+or to ~/.mc/bindings :
+
+    regex/\.([mM][pP]3)$
+	Open=if [ "$DISPLAY" = "" ]; then mpg123 %f; else (qmmp %f >/dev/null 2>&1 &); fi
+	View=%view{ascii} mpg123 -vtn1 %f 2>&1 | sed -n '/^Title/,/^Comment/p;/^MPEG/,/^Audio/p'
+	Edit=tagedit.dialog -c CP1251 %f
+
+    regex/\.([oO][gG][gG|aA|vV|xX])$
+	Open=if [ "$DISPLAY" = "" ]; then ogg123 %f; else (qmmp %f >/dev/null 2>&1 &); fi
+	View=%view{ascii} ogginfo %s
+	Edit=tagedit.dialog -c CP1251 %f
+
+    regex/\.([fF][lL][aA][cC])$
+	Open=if [ "$DISPLAY" = "" ]; then mpg123 %f; else (audacious %f >/dev/null 2>&1 &); fi
+	View=%view{ascii} mpg123 -vtn1 %f 2>&1 | sed -n '/^Title/,/^Comment/p;/^MPEG/,/^Audio/p'
+	Edit=tagedit.dialog -c CP1251 %f
+
+    regex/\.([wW][mM][aA])$
+	Open=if [ "$DISPLAY" = "" ]; then mpg123 %f; else (qmmp %f >/dev/null 2>&1 &); fi
+	View=%view{ascii} mplayer -quiet -slave -frames 0 -vo null -ao null -identify %f 2>/dev/null | tail +13 || file %f
+	Edit=tagedit.dialog -c CP1251 %f
+
+To create shortcuts in the Midnight Commander user menu, edit ~/.mc/menu :
+
+    + ! t t
+    f   Rename audio files using the info from tags
+	tag2fname.dialog %f
+    + t t
+    f   Rename audio files using the info from tags
+	tag2fname.dialog %t
+    + ! t t
+    b   Batch audio tag creation
+    	batchtag.dialog %f
+    + t t
+    b   Batch audio tag creation
+    	batchtag.dialog %t
+
+Use the shortcuts:
+
+    Edit tags          :  F4 on the selected file
+    Tag->filename      :  F2, then f
+    Batch tag creation :  F2, then b
+
+
+-------------------------
+DEPENDENCIES
+
+This module requires these other modules and libraries:
+
+   Audio-TagLib-1.50_01  (http://search.cpan.org/dist/Audio-TagLib/lib/Audio/TagLib.pm)
+   UI::Dialog		 (http://ui-dialog.sourceforge.net/)
+
+
+-------------------------
+COPYRIGHT AND LICENCE
+
+Copyright (C) 2011 by V.Korol <vakorol@mail.ru>.
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.10.1 or,
+at your option, any later version of Perl 5 you may have available.
+
