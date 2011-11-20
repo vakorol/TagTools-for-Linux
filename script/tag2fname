@@ -94,7 +94,7 @@ foreach my $arg (@ARGV){
 
 
     ## read tags:
-    $tag_ref = readTag($f, $charset);
+    $tag_ref = TagTools::readTag($f, $charset);
     ($title, $artist, $album, $year, $track, $genre, $comment) = @$tag_ref;
 
 
