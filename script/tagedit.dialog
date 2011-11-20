@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 # tagedit
-#  MP3 utils for linux - v0.41
+#  MP3 utils for linux - v0.42b
 #  V.Korol 2011
 ############################## 
 
@@ -62,9 +62,10 @@ foreach my $arg (@ARGV){
     my $f = Audio::TagLib::FileRef->new($file);
 
     ## read tags:
-    $tag_ref = readTag($f, $charset);
+    $tag_ref = TagTools::readTag($f, $charset);
     ($title, $artist, $album, $year, $track, $genre, $comment) = @$tag_ref;
 
+print $title;
 
     my $backtitle = getcwd();
 
@@ -88,16 +89,21 @@ foreach my $arg (@ARGV){
 		       height => 17,
 		       width => 55,
 		       formheight => 7,
-                       list => [ [ 'Title:',   1, 1 ], [ "$title",   1, 10, 39, 80 ],
-                                 [ 'Artist:',  2, 1 ], [ "$artist",  2, 10, 39, 80 ],
-                                 [ 'Album:',   3, 1 ], [ "$album",   3, 10, 39, 80 ],
-                                 [ 'Year:',    4, 1 ], [ "$year",    4, 10, 39, 80 ],
-                                 [ 'Track:',   5, 1 ], [ "$track ",  5, 10, 39, 80 ],
+                       list => [ [ 'Title:',   1, 1 ], [ "$title",   1, 10, 39, 160 ],
+                                 [ 'Artist:',  2, 1 ], [ "$artist",  2, 10, 39, 100 ],
+                                 [ 'Album:',   3, 1 ], [ "$album",   3, 10, 39, 100 ],
+                                 [ 'Year:',    4, 1 ], [ "$year",    4, 10, 39, 20 ],
+                                 [ 'Track:',   5, 1 ], [ "$track ",  5, 10, 39, 20 ],
                                  [ 'Genre:',   6, 1 ], [ "$genre",   6, 10, 39, 80 ],
-                                 [ 'Comment:', 7, 1 ], [ "$comment", 7, 10, 39, 80 ] ]
+                                 [ 'Comment:', 7, 1 ], [ "$comment", 7, 10, 39, 160 ] ]
                       );
 
      next if (!defined(@data) || (scalar @data == 1));
+
+    # correct the spaces bug from CDialog - remove traling spaces:
+    foreach $item(@data){
+      $item =~ s/\s+$//;
+    }
 
 
     ##  Encode the data back to $charset:

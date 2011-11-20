@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 #
 # TagTools.pm
-# audiotagtools for linux - v0.41
+# audiotagtools for linux - v0.42b
 # V.Korol (vakorol@mail.ru)
 #
 # This is a module with useful variables and subroutines shared by audiotagtools scripts.
@@ -19,7 +19,7 @@ package TagTools;
     use Encode;
 
 ######################################################################################
-$VERSION = "0.41";
+$VERSION = "0.42b";
 $DEFAULT_CHARSET = "UTF-8";
 
 $home_dir = `echo ~`;
@@ -47,7 +47,8 @@ sub updateCookieFile {
     close cf;
 
     open cf, ">$COOKIE_FILE";
-    print cf join(/\n/,@data);
+     print cf join(/\n/,@data);
+    close cf;
 }
 
 
@@ -55,6 +56,8 @@ sub updateCookieFile {
 sub readTag {
     my $f=$_[0];
     my $charset=$_[1];
+
+    $charset = initCharset($charset);
 
     {
 	local $SIG{__WARN__}=sub{};   #supress warnings like "Malformed UTF-8 character..."
@@ -89,19 +92,24 @@ sub readTag {
     	    my $tag_8_is_utf8 = utf8::is_utf8($tag_8[$n]);
 
         	if (($tag_is_utf8==1) && ($tag_8_is_utf8==1)) {
-        	    if ($charset ne $DEFAULT_CHARSET){
         		utf8::encode($tag[$n]);
+        	    if ($charset ne $DEFAULT_CHARSET){
         		Encode::from_to($tag[$n],"$charset","$DEFAULT_CHARSET") ;
         	    }
         	} else {
-        	    if ($charset ne $DEFAULT_CHARSET){
         		utf8::encode($tag_8[$n]);
+        	    if ($charset ne $DEFAULT_CHARSET){
         		$tag[$n]=$tag_8[$n];
         	    }
         	}
-        	$n++;
-        }
 
+	    ## Remove non-printable characters:
+	    $tag[$n]=~s/[\f\n\r\t]/\s/g;
+	    ## Substitute semicolon with colon (UI::CDialog can't show the latter):
+	    $tag[$n]=~s/\"/\'/g;
+
+    	    $n++;
+        }
     return \@tag;
 }
 
@@ -110,7 +118,7 @@ sub readTag {
 sub initCharset {
     my $charset = $_[0];
     ## Check if the specified charmap exists
-    $charset = $DEFAULT_CHARSET if($charset eq "");
+    $charset = $DEFAULT_CHARSET if(($charset eq "") || !defined($charset));
     if ($charset ne $DEFAULT_CHARSET) {
         $enc=find_encoding($charset);
         die "Unknown charset $charset, quitting.\n" unless ref $enc;

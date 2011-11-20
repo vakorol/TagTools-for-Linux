@@ -1,4 +1,11 @@
-v0.41  (21 Oct 2011):
+v0.42b  (18 Nov 2011):
+ ! bugfix: batchtag.dialog fails to process files correctly and shows an "unknown encoding" error message;
+ ! bugfix: crashes and wrong output while processing tags containing non-printable characters;
+ ! bugfix: crash on tags containing semicolons;
+ ! bugfix: tagedit.dialog adds trailing spaces in tag fields sometimes;
+ = some minor code enhancement;
+
+v0.41  (20 Oct 2011):
  ! fixed a bug when trailing spaces were added to all tag fields displayed by UI::Dialog::Backend::CDialog::form(),
    thus sometimes resulting in tag erasure in batchtag.dialog;
  + Installation via Makefile;
@@ -59,9 +66,14 @@ v0.1 (?? Feb 2011) - Can rename files using two fixed formats, uses id3tool to e
 
 ---------------------------------------------------------------------------
 TODO:
+ - bugfixes:
+    4. see Tom Waits (must handle "TagLib: MPEG::Header::parse() -- Invalid sample rate"  error message);
+ - check file permissions before execution!
+ - handle id3v2 tags as weill as id3v1;
  - do something with the "-u" option in tag2fname (does nothing currently);
  - batchtag.dialog and tag2fname.dialog shouldn't crash on incorrect .audiotagtools syntax;
  - tag2fname.dialog shouldn't start if the files don't exist (or should it??);
  - catch all error messages;
  - try to fix a strange issue with UI::Dialog::Backend::CDialog::form() crashing on field value equal to "--" (wtf?!)
  - expand to XDialog;
+ - fix UI::Dialog::Backend::CDialog::form() to be able to use "home" and "end" buttons in dialogs;
