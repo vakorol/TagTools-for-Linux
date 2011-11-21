@@ -1,4 +1,4 @@
-v0.42b  (18 Nov 2011):
+v0.42  (18 Nov 2011):
  ! bugfix: batchtag.dialog fails to process files correctly and shows an "unknown encoding" error message;
  ! bugfix: crashes and wrong output while processing tags containing non-printable characters;
  ! bugfix: crash on tags containing semicolons;
@@ -8,7 +8,7 @@ v0.42b  (18 Nov 2011):
  = track length is now printed with leading zeroes in mins and secs;
  = somewhat debug logging option added (the output can still not very informative, though);
  = some minor code enhancements, cleanups and restructures;
-
+--------------------------------------------------------------------------
 v0.41  (20 Oct 2011):
  ! fixed a bug when trailing spaces were added to all tag fields displayed by UI::Dialog::Backend::CDialog::form(),
    thus sometimes resulting in tag erasure in batchtag.dialog;

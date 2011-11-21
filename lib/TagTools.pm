@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 #
 # TagTools.pm
-# audiotagtools for linux - v0.42b
+# audiotagtools for linux - v0.42
 # V.Korol (vakorol@mail.ru)
 #
 # This is a module with useful variables and subroutines shared by audiotagtools scripts.
@@ -21,7 +21,7 @@ package TagTools;
     use Audio::TagLib;
 
 ######################################################################################
-$VERSION = "0.42b";
+$VERSION = "0.42";
 $DEFAULT_CHARSET = "UTF-8";
 
 $home_dir = `echo ~`;
