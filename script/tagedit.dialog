@@ -1,13 +1,12 @@
 #!/usr/bin/perl
 # tagedit
-#  MP3 utils for linux - v0.42b
+#  TagTools for linux v0.42b
 #  V.Korol 2011
 ############################## 
 
-use Cwd;
 use Encode;
 
-use TagTools qw(:DEFAULT $DEFAULT_CHARSET);
+use TagTools qw(:DEFAULT $VERSION $DEFAULT_CHARSET $DEBUG_ON $DEBUG_FILE);
 
 use UI::Dialog::Backend::CDialog;
 use Audio::TagLib;
@@ -15,13 +14,14 @@ use utf8;
 
 ######################################################################################
 sub displayHelp {
- print 'tagedit.dialog v$VERSION by V.Korol (vakorol@mail.ru).';
+ print "tagedit.dialog v$VERSION by V.Korol (vakorol\@mail.ru).";
  print "\n A script for dialog-based audio tag editing.\n";
- print " Usage:  [-c CHARSET] tagedit <AUDIO_FILE>\n";
+ print " Usage:  [-c CHARSET] [-d] tagedit <AUDIO_FILE>\n";
  print "     -c CHARSET : Read tags in specified charset. CHARSET should be one of\n";
  print "		charmaps known by your system (see locale -m for the full list).\n";
  print "		If omitted, the charset is $DEFAULT_CHARSET.\n";
  print "	       Example:  tag2edit -c CP1251 somefile.mp3\n";
+ print "     -d         : output debug messages to $DEBUG_FILE.\n";
 }
 
 
@@ -34,6 +34,15 @@ $num_of_files=0;
 
 foreach my $arg (@ARGV){
 
+    if ($arg eq "-d"){	# -d option: turn on debug logging
+      $DEBUG_ON=1;
+      use warnings;
+      TagTools::printLog("Run $0") if($DEBUG_ON);
+      open STDERR,'>>',$DEBUG_FILE;
+      $SIG{__WARN__} = sub {warn print (localtime()." -- ".@_)};
+#      $SIG{__DIE__}  = sub {die  print (localtime()." -- ".@_)};
+      next;
+    }
     if ($arg eq "-c"){	# -c CHARSET option: use specified charset
       $charset_next=1;
       next;
@@ -43,7 +52,13 @@ foreach my $arg (@ARGV){
       $charset_next=0;
       next;
      }
-     next if ($arg=~m/^\-/);	# unknown option
+     if ($arg=~m/^\-/) {	# ignore unknown option, but log event if necessary
+      TagTools::printLog("$0: Ignoring unknown option '$arg.'") if($DEBUG_ON);
+      next;
+     }
+
+    ## supress warnings and stderr output if debug logging is disabled:
+    open STDERR,'>','/dev/null' if (!$DEBUG_ON);
 
     # any command-line argument rather than "-x" will be considered an audio file name:
     $file=$arg;
@@ -59,32 +74,22 @@ foreach my $arg (@ARGV){
     }
 
 
-    my $f = Audio::TagLib::FileRef->new($file);
+    $f = Audio::TagLib::FileRef->new($file);
 
     ## read tags:
     $tag_ref = TagTools::readTag($f, $charset);
     ($title, $artist, $album, $year, $track, $genre, $comment) = @$tag_ref;
 
-print $title;
+    ## read tech info, current dir and short filename
+    $info_ref = TagTools::getFileInfo($f);
+    ($audio_length, $audio_bitrate, $audio_sample, $backtitle, $short_filename) = @$info_ref;
 
-    my $backtitle = getcwd();
-
-    my $short_filename = $file;
-    $short_filename =~ s/^.+?\/([^\/]+)$/$1/;  #extract only the filename from the full path
-
-
-    $audio_length  = $f->audioProperties()->length();
-    $audio_bitrate = $f->audioProperties()->bitrate();
-    $audio_sample  = $f->audioProperties()->sampleRate();
-     @full_length = gmtime($audio_length);
-     $length_mins = $full_length[1];
-     $length_secs = $full_length[0];
 
     ###################     INIT THE DIALOG        ###########################################
       my $d = new UI::Dialog::Backend::CDialog ( backtitle => "$backtitle",
                                                  title => "Edit tags" );
 
-      @data = $d->form( text => "$short_filename\n Length: $length_mins:$length_secs\n Bitrate: $audio_bitrate kb/sec,  $audio_sample Hz",
+      @data = $d->form( text => "$short_filename\n Length: $audio_length\n Bitrate: $audio_bitrate kb/sec,  $audio_sample Hz",
 		       literal => 1,
 		       height => 17,
 		       width => 55,
@@ -115,7 +120,6 @@ print $title;
 
     ($title, $artist, $album, $year, $track, $genre, $comment) = @data;
 
-
      ## Run it!
     $f->tag()->setTitle  ( Audio::TagLib::String->new($title)   );
     $f->tag()->setArtist ( Audio::TagLib::String->new($artist)  );
@@ -128,5 +132,6 @@ print $title;
     $f->save();
 
 }
+
 
 displayHelp() if ($num_of_files==0);

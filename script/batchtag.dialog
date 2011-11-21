@@ -1,14 +1,13 @@
 #!/usr/bin/perl
 # batch.dialog
-#  MP3 utils for linux - v0.42b
+#  TagTools for Linux v0.42b
 #  V.Korol 2011
 ############################## 
 
-use Cwd;
 use Encode;
 use utf8;
 
-use TagTools qw(:DEFAULT $VERSION $DEFAULT_CHARSET $COOKIE_FILE);
+use TagTools qw(:DEFAULT $VERSION $DEFAULT_CHARSET $COOKIE_FILE $DEBUG_ON $DEBUG_FILE);
 
 use UI::Dialog::Backend::CDialog;
 use Audio::TagLib;
@@ -23,6 +22,8 @@ sub displayHelp {
  print "The following variables in the format string are allowed:\n";
  print "%a - artist, %t - title, %b - album, %n - track no.,\n";
  print "%y - year, %c - comment, %u - useless.\n";
+ print " Usage:  batchtag.dialog [-d] file1 file2..\n";
+ print "     -d         : output debug messages to $DEBUG_FILE.\n";
  exit;
 }
 
@@ -30,7 +31,23 @@ sub displayHelp {
 ######################################################################################
 
 $file = $ARGV[0];
+if ($file eq "-d"){	# -d option: turn on debug logging
+  $DEBUG_ON=1;
+  use warnings;
+  TagTools::printLog("Run $0") if($DEBUG_ON);
+  open STDERR,'>>',$DEBUG_FILE;
+  $SIG{__WARN__} = sub {warn print (localtime()." -- ".@_)};
+#  $SIG{__DIE__}  = sub {die  print (localtime()." -- ".@_)};
+  $file = $ARGV[1];
+}
+if ($file=~m/^\-/) {	# ignore unknown option, but log event if necessary
+ TagTools::printLog("$0: Ignoring unknown option '$file.'") if($DEBUG_ON);
+}
 displayHelp() if(!defined($file) || ($file eq ""));
+
+
+## supress warnings and stderr output if debug logging is disabled:
+open STDERR,'>','/dev/null' if (!$DEBUG_ON);
 
 
 ## Check for cookie file:
@@ -44,26 +61,16 @@ $batchtag_last_charset = "";
 
 my $f = Audio::TagLib::FileRef->new($file);
 
-
-## get tech info (length and bitrate):
-$audio_length  = $f->audioProperties()->length();
-$audio_bitrate = $f->audioProperties()->bitrate();
-$audio_sample  = $f->audioProperties()->sampleRate();
- @full_length = gmtime($audio_length);
- $length_mins = $full_length[1];
- $length_secs = $full_length[0];
-
-
-$backtitle=getcwd();
-$short_filename = $file;
-$short_filename =~ s/^.+?\/([^\/]+)$/$1/;  #extract only the filename from the full path
+## read tech info, current dir and short filename
+$info_ref = TagTools::getFileInfo($f);
+($audio_length, $audio_bitrate, $audio_sample, $backtitle, $short_filename) = @$info_ref;
 
 
 ###################     INIT THE DIALOG        ###########################################
   my $d = new UI::Dialog::Backend::CDialog ( backtitle => "$backtitle",
                                              title => "Batch tag edit" );
 
-  my @data = $d->form( text => "$short_filename\n Length: $length_mins:$length_secs\n Bitrate: $audio_bitrate kb/sec,  $audio_sample Hz",
+  my @data = $d->form( text => "$short_filename\n Length: $audio_length\n Bitrate: $audio_bitrate kb/sec,  $audio_sample Hz",
 		       literal => 1,
 		       height => 18,
 		       width => 51,
@@ -141,3 +148,4 @@ TagTools::updateCookieFile("batchtag_last_format=$format",
 		 "batchtag_last_artist=$artist",
 		 "batchtag_last_album=$album",
 		 "batchtag_last_year=$year");
+

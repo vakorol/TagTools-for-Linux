@@ -1,9 +1,13 @@
 #!/usr/bin/perl
+# tag2fname
+#  TagTools for linux v0.42b
+#  V.Korol 2011
+############################## 
 
 use Encode;
 use utf8;
 
-use TagTools qw(:DEFAULT $DEFAULT_CHARSET $VERSION);
+use TagTools qw(:DEFAULT $DEFAULT_CHARSET $VERSION $DEBUG_ON $DEBUG_FILE);
 use Audio::TagLib;
 
 ######################################################################################
@@ -15,7 +19,7 @@ sub displayHelp {
     print "     -f FORMAT : Use the specified format. The following variables are allowed:\n";
     print "		\%a - artist, \%t - title, \%b - album, \%n - track no.,\n";
     print "		\%y - year, \%c - comment.\n";
-    print "		If not specified, the default format is \"%a - %t\".";
+    print "		If not specified, the default format is \"%a - %t\".\n";
     print "        Example:  tag2fname -f \"\%a - \%n.\%t\" somefile.mp3\n";
     print "     -u : process files with empty tags and create output files such as\n";
     print "          \"Unknown Artist - XX.Untitled\". Otherwise do not rename at all.\n";
@@ -23,8 +27,9 @@ sub displayHelp {
     print "		charmaps known by your system (see locale -m for the full list).\n";
     print "		If omitted, the charset is the same as the default one specified in\n";
     print "		your locale.\n";
-    print "	       Example:  tag2fname -c CP1251 somefile.mp3\n";
+    print "	   Example:  tag2fname -c CP1251 somefile.mp3\n";
     print "     -k : keep the original file; copy instead of rename\/move\n";
+    print "     -d         : output debug messages to $DEBUG_FILE.\n";
 }
 
 
@@ -43,6 +48,15 @@ $num_of_files=0;
 
 foreach my $arg (@ARGV){
 
+    if ($arg eq "-d"){	# -d option: turn on debug logging
+      $DEBUG_ON=1;
+      use warnings;
+      TagTools::printLog("Run $0") if($DEBUG_ON);
+      open STDERR,'>>',$DEBUG_FILE;
+      $SIG{__WARN__} = sub {warn print (localtime()." -- ".@_)};
+#      $SIG{__DIE__}  = sub {die  print (localtime()." -- ".@_)};
+      next;
+    }
      if ($arg eq "-k"){    # -k option: keep the original file; copy instead
       $KEEP_ORIGINAL=1;     #            of rename/move
       next;
@@ -69,9 +83,13 @@ foreach my $arg (@ARGV){
       $charset_next=0;
       next;
      }
-     if ($arg=~m/^\-/){	# unknown option
+     if ($arg=~m/^\-/) {	# ignore unknown option, but log event if necessary
+      TagTools::printLog("$0: Ignoring unknown option '$arg.'") if($DEBUG_ON);
       next;
      }
+
+    ## supress warnings and stderr output if debug logging is disabled:
+    open STDERR,'>','/dev/null' if (!$DEBUG_ON);
 
     # Consider anything rather than "-x" as and audio file name:
     $file = $arg;

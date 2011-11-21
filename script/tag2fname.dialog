@@ -1,15 +1,15 @@
 #!/usr/bin/perl
 # tag2fname.dialog
-#  MP3 utils for linux - v0.41
+#  TagTools for linux v0.42b
 #  V.Korol 2011
 ############################## 
 
 use Switch;
-use Cwd;
 
-use TagTools qw(:DEFAULT $COOKIE_FILE $VERSION);
+use TagTools qw(:DEFAULT $COOKIE_FILE $VERSION $DEBUG_ON $DEBUG_FILE);
 
 use UI::Dialog::Backend::CDialog;
+use Audio::TagLib;
 
 
 ######################################################################################
@@ -20,7 +20,8 @@ sub displayHelp {
     print " The following variables in the format string are allowed:\n";
     print "  %a - artist, %t - title, %b - album, %n - track no.,\n";
     print "  %y - year, %c - comment, %u - useless.\n";
-    print "Usage:  tag2fname.dialog file1.mp3 file2.ogg ...\n";
+    print "Usage:  tag2fname.dialog [-d] file1.mp3 file2.ogg ...\n";
+    print "     -d         : output debug messages to $DEBUG_FILE.\n";
     exit;
 }
 
@@ -28,6 +29,23 @@ sub displayHelp {
 ######################################################################################
 
 $file = $ARGV[0];
+if ($file eq "-d"){	# -d option: turn on debug logging
+  $DEBUG_ON=1;
+  use warnings;
+  TagTools::printLog("Run $0") if($DEBUG_ON);
+  open STDERR,'>>',$DEBUG_FILE;
+  $SIG{__WARN__} = sub {warn print (localtime()." -- ".@_)};
+#  $SIG{__DIE__}  = sub {die  print (localtime()." -- ".@_)};
+  $file = $ARGV[1];
+}
+if ($file=~m/^\-/) {	# ignore unknown option, but log event if necessary
+  TagTools::printLog("$0: Ignoring unknown option '$file.'") if($DEBUG_ON);
+  next;
+}
+
+## supress warnings and stderr output if debug logging is disabled:
+open STDERR,'>','/dev/null' if (!$DEBUG_ON);
+
  displayHelp() if(!defined($file) || ($file eq ""));
 
 
@@ -37,18 +55,20 @@ $tag2fname_last_charset = "";
 (-r $COOKIE_FILE) ? require "$COOKIE_FILE" : print "$COOKIE_FILE cannot be read, does it exist?";
 
 
-$backtitle=getcwd();
-$short_filename = $file;
-$short_filename =~ s/^.+?\/([^\/]+)$/$1/;  #extract only the filename from the full path
+$f = Audio::TagLib::FileRef->new($file);
+
+## read tech info, current dir and short filename
+$info_ref = TagTools::getFileInfo($f);
+($audio_length, $audio_bitrate, $audio_sample, $backtitle, $short_filename) = @$info_ref;
 
 
 ###################     INIT THE DIALOG        ###########################################
   my $d = new UI::Dialog::Backend::CDialog ( backtitle => "$backtitle",
                                              title => "Rename file(s): tag -> filename" );
 
-  my @data = $d->form( text => "$short_filename\n\%a = artist, \%t = title, \%n = track\n\%b = album,  \%g = genre, \%y = year",
+  my @data = $d->form( text => "$short_filename\n Length: $audio_length\n Bitrate: $audio_bitrate kb/sec,  $audio_sample Hz\n\%a = artist, \%t = title, \%n = track\n\%b = album,  \%g = genre, \%y = year",
 		       literal => 1,
-		       height => 11,
+		       height => 13,
 		       width => 50,
 		       formheight => 2,
                        list => [ [ 'Format:',  1, 1 ], [ "$tag2fname_last_format",  1, 10, 35, 0 ],

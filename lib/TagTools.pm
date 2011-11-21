@@ -11,12 +11,14 @@ package TagTools;
 
     require Exporter;
     @ISA = qw (Exporter);
-    @EXPORT = qw (updateCookieFile readTag initCharset);
-    @EXPORT_OK = qw ($VERSION $DEFAULT_CHARSET $COOKIE_FILE);
+    @EXPORT = qw (updateCookieFile readTag initCharset printLog getFileInfo);
+    @EXPORT_OK = qw ($VERSION $DEFAULT_CHARSET $COOKIE_FILE $DEBUG_ON $DEBUG_FILE);
 
-    use Audio::TagLib;
     use utf8;
     use Encode;
+    use Cwd;
+    
+    use Audio::TagLib;
 
 ######################################################################################
 $VERSION = "0.42b";
@@ -25,6 +27,10 @@ $DEFAULT_CHARSET = "UTF-8";
 $home_dir = `echo ~`;
 $home_dir =~ s/\n//;
 $COOKIE_FILE = $home_dir."/.tagtools.rc";
+
+$DEBUG_ON = 0;             # 0 - off;  1 - turn on debug messages to $DEBUG_FILE
+$DEBUG_FILE = $home_dir."/tagtools.log";
+#$DEBUG_FILE = ($DEBUG_ON) ? $home_dir."/tagtools.log" : "/dev/null";
 
 
 ######################################################################################
@@ -124,6 +130,36 @@ sub initCharset {
         die "Unknown charset $charset, quitting.\n" unless ref $enc;
     }
     return $charset;
+}
+
+
+######################################################################################
+sub printLog {
+    my $log_info = $_[0];
+     open (DF, ">>$DEBUG_FILE") or return 0;
+      print DF localtime()." -- ".$log_info."\n";
+     close (DF);
+    return 1;
+}
+
+
+######################################################################################
+sub getFileInfo {
+    my $f = $_[0];
+
+    ## get tech info (length and bitrate):
+    my $audio_bitrate = $f->audioProperties()->bitrate();
+    my $audio_sample  = $f->audioProperties()->sampleRate();
+     my @full_length = gmtime( $f->audioProperties()->length() );
+     my $audio_length  = sprintf ("%02d:%02d", $full_length[1], $full_length[0]);
+
+    ## get workdir and short filename
+    my $cwd = getcwd();
+    my $short_filename = $f->file()->name();
+    $short_filename =~ s/^.+?\/([^\/]+)$/$1/;  #extract only the filename from the full path
+
+    my @fileInfo = ($audio_length, $audio_bitrate, $audio_sample, $cwd, $short_filename);
+    return \@fileInfo;
 }
 
 

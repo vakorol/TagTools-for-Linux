@@ -1,20 +1,23 @@
 #!/usr/bin/perl
+# fname2tag
+#  TagTools for Linux v0.42b
+#  V.Korol 2011
+############################## 
 
 use Switch;
 use Encode;
 use utf8;
 
-use TagTools qw(:DEFAULT $DEFAULT_CHARSET $VERSION);
+use TagTools qw(:DEFAULT $DEFAULT_CHARSET $VERSION $DEBUG_ON $DEBUG_FILE);
 
 use Audio::TagLib;
 
 ######################################################################################
 sub displayHelp {
-    print "fname2tag v$VERSION by V.Korol (vasya_korol2000@yahoo.com)\n";
-    print "  * Extracts info from the name of an MP3/OGG file using the specified pattern format\n";
+    print "fname2tag v$VERSION by V.Korol (vakorol@mail.ru)\n";
+    print "  * Extracts info from the name of an audio file using the specified pattern format\n";
     print "    and updates corresponding audio format tag fields.\n";
-    print "  * Requires packages id3v2 and recode installed for MP3 support and vorbistools for OGG.\n";
-    print " Syntax:  fname2tag -f FORMAT [-c CHARSET] file1 file2 ..\n";
+    print " Syntax:  fname2tag -f FORMAT [-c CHARSET] [-d] file1 file2 ..\n";
     print "    Options:\n";
     print "     -f FORMAT : Use the specified format. The following variables are allowed:\n";
     print "		\%a - artist, \%t - title, \%b - album, \%n - track no.,\n";
@@ -23,6 +26,7 @@ sub displayHelp {
     print "		charmaps known by your system (see locale -m for the full list).\n";
     print "		If omitted, the charset is the same as the default one specified in\n";
     print "		your locale.\n";
+    print "     -d         : output debug messages to $DEBUG_FILE.\n";
     print " Example: fname2tag -f \"\%a - \%n.\%t\" -c CP1251 somefile.mp3\n";
     exit;
 }
@@ -42,6 +46,15 @@ $num_of_files=0;
 
 foreach $arg(@ARGV){
 
+    if ($arg eq "-d"){	# -d option: turn on debug logging
+      $DEBUG_ON=1;
+      use warnings;
+      TagTools::printLog("Run $0") if($DEBUG_ON);
+      open STDERR,'>>',$DEBUG_FILE;
+      $SIG{__WARN__} = sub {warn print (localtime()." -- ".@_)};
+#      $SIG{__DIE__}  = sub {die  print (localtime()." -- ".@_)};
+      next;
+    }
      if ($arg eq "-f"){	# -f FORMAT option: use specified format
       $format_next=1;
       next;
@@ -60,6 +73,10 @@ foreach $arg(@ARGV){
       $charset_next=0;
       next;
      }
+     if ($arg=~m/^\-/) {	# ignore unknown option, but log event if necessary
+      TagTools::printLog("$0: Ignoring unknown option '$arg.'") if($DEBUG_ON);
+      next;
+     }
     ######################################################################################
 
     $num_of_files++;
@@ -67,6 +84,9 @@ foreach $arg(@ARGV){
     # Consider anything rather than "-x" as audio file name: 
     $file = $arg;
 
+
+    ## supress warnings and stderr output if debug logging is disabled:
+    open STDERR,'>','/dev/null' if (!$DEBUG_ON);
 
     die("Error: FORMAT not specified - use the '-f' option! Run fname2tag without arguments for help.\n") if($format eq "");
 
