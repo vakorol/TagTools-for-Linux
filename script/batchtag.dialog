@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 # batch.dialog
-#  TagTools for Linux v0.42
+#  TagTools for Linux v0.43a
 #  V.Korol 2011
 ############################## 
 
@@ -56,14 +56,21 @@ $batchtag_last_album = "";
 $batchtag_last_format = "";
 $batchtag_last_year = "";
 $batchtag_last_charset = "";
-(-r $COOKIE_FILE) ? require "$COOKIE_FILE" : print "$COOKIE_FILE cannot be read, does it exist?";
+#(-r $COOKIE_FILE) ? require "$COOKIE_FILE" : print "$COOKIE_FILE cannot be read, does it exist?";
+if (-r $COOKIE_FILE){
+     eval "require \"$COOKIE_FILE\" ";
+     warn $@ if $@;
+} else {
+    print "$COOKIE_FILE cannot be read, does it exist?";
+}
 
 
 my $f = Audio::TagLib::FileRef->new($file);
 
 ## read tech info, current dir and short filename
-$info_ref = TagTools::getFileInfo($f);
-($audio_length, $audio_bitrate, $audio_sample, $backtitle, $short_filename) = @$info_ref;
+#$info_ref = TagTools::getFileInfo($f);
+($audio_length, $audio_bitrate, $audio_sample, $backtitle, $short_filename) = 
+    @{TagTools::getFileInfo($f)};
 
 
 ###################     INIT THE DIALOG        ###########################################
@@ -88,10 +95,10 @@ $info_ref = TagTools::getFileInfo($f);
 
 
   # correct the spaces bug from CDialog - remove traling spaces:
-  foreach $item(@data){
-    $item =~ s/\s+$//;
-  }
-
+#  foreach $item(@data){
+#    $item =~ s/\s+$//;
+#  }
+  @data = @{TagTools::removeTrailingSpaces(\@data)};
 
  ($artist, $album, $year, $genre, $comment, $format, $charset) = @data;
 

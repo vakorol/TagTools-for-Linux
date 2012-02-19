@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 # tagedit
-#  TagTools for linux v0.42
+#  TagTools for linux v0.43a
 #  V.Korol 2011
 ############################## 
 
@@ -73,6 +73,8 @@ foreach my $arg (@ARGV){
         next;
     }
 
+    $ro_title = (-w $file) ? "" : " (READ ONLY!)";
+    
 
     $f = Audio::TagLib::FileRef->new($file);
 
@@ -87,7 +89,7 @@ foreach my $arg (@ARGV){
 
     ###################     INIT THE DIALOG        ###########################################
       my $d = new UI::Dialog::Backend::CDialog ( backtitle => "$backtitle",
-                                                 title => "Edit tags" );
+                                                 title => "Edit tags$ro_title" );
 
       @data = $d->form( text => "$short_filename\n Length: $audio_length\n Bitrate: $audio_bitrate kb/sec,  $audio_sample Hz",
 		       literal => 1,
@@ -106,10 +108,7 @@ foreach my $arg (@ARGV){
      next if (!defined(@data) || (scalar @data == 1));
 
     # correct the spaces bug from CDialog - remove traling spaces:
-    foreach $item(@data){
-      $item =~ s/\s+$//;
-    }
-
+    @data = @{TagTools::removeTrailingSpaces(\@data)};
 
     ##  Encode the data back to $charset:
     if ($charset ne $DEFAULT_CHARSET) {

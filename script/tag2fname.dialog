@@ -54,7 +54,7 @@ $tag2fname_last_format = "";
 $tag2fname_last_charset = "";
 if (-r $COOKIE_FILE){
      eval "require \"$COOKIE_FILE\" ";
-     warn $@ if $@;
+#     warn $@ if $@;
 } else {
     print "$COOKIE_FILE cannot be read, does it exist?";
 }
@@ -62,8 +62,9 @@ if (-r $COOKIE_FILE){
 $f = Audio::TagLib::FileRef->new($file);
 
 ## read tech info, current dir and short filename
-$info_ref = TagTools::getFileInfo($f);
-($audio_length, $audio_bitrate, $audio_sample, $backtitle, $short_filename) = @$info_ref;
+#$info_ref = TagTools::getFileInfo($f);
+($audio_length, $audio_bitrate, $audio_sample, $backtitle, $short_filename) =
+   @{TagTools::getFileInfo($f)};
 
 
 ###################     INIT THE DIALOG        ###########################################
