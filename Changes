@@ -1,4 +1,9 @@
-v0.42  (18 Nov 2011):
+v0.43a  (18 Feb 2012):
+ ! bugfix: tag2fname.dialog and fname2tag.dialog crash or disbehave on missing cookie file, or on incorrect
+   cookie file syntax;
+
+--------------------------------------------------------------------------
+v0.42  (21 Nov 2011):
  ! bugfix: batchtag.dialog fails to process files correctly and shows an "unknown encoding" error message;
  ! bugfix: crashes and wrong output while processing tags containing non-printable characters;
  ! bugfix: crash on tags containing semicolons;
@@ -70,13 +75,13 @@ v0.1 (?? Feb 2011) - Can rename files using two fixed formats, uses id3tool to e
 
 ---------------------------------------------------------------------------
 TODO:
+ - update makefile.pl (remove warnings about abstract and check installation paths);
  - check file permissions before execution!
  - handle id3v2 tags as well as id3v1;
  - do something with the "-u" option in tag2fname (does nothing currently);
- - batchtag.dialog and tag2fname.dialog shouldn't crash on incorrect .audiotagtools syntax;
  - tag2fname.dialog shouldn't start if the files don't exist (or should it??);
  - catch all error messages;
  - try to fix a strange issue with UI::Dialog::Backend::CDialog::form() crashing on field value equal to "--" (wtf?!)
  - expand to XDialog;
- - fix UI::Dialog::Backend::CDialog::form() to be able to use "home" and "end" buttons in dialogs;
+ - fix UI::Dialog::Backend::CDialog::form() to be able to use "home","end" and backspace buttons in dialogs;
  - fix UI::Dialog::Backend::CDialog::form() bug related to escaping of $

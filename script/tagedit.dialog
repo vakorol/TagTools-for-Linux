@@ -53,7 +53,7 @@ foreach my $arg (@ARGV){
       next;
      }
      if ($arg=~m/^\-/) {	# ignore unknown option, but log event if necessary
-      TagTools::printLog("$0: Ignoring unknown option '$arg.'") if($DEBUG_ON);
+      TagTools::printLog("$0: Ignoring unknown option '$arg'.") if($DEBUG_ON);
       next;
      }
 

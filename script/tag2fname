@@ -91,7 +91,7 @@ foreach my $arg (@ARGV){
     ## supress warnings and stderr output if debug logging is disabled:
     open STDERR,'>','/dev/null' if (!$DEBUG_ON);
 
-    # Consider anything rather than "-x" as and audio file name:
+    # Consider anything rather than "-x" as audio file name:
     $file = $arg;
 
     $num_of_files++;

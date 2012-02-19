@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 # tag2fname.dialog
-#  TagTools for linux v0.42
+#  TagTools for linux v0.43a
 #  V.Korol 2011
 ############################## 
 
@@ -38,10 +38,10 @@ if ($file eq "-d"){	# -d option: turn on debug logging
 #  $SIG{__DIE__}  = sub {die  print (localtime()." -- ".@_)};
   $file = $ARGV[1];
 }
-if ($file=~m/^\-/) {	# ignore unknown option, but log event if necessary
-  TagTools::printLog("$0: Ignoring unknown option '$file.'") if($DEBUG_ON);
-  next;
-}
+
+#ignore unknown option, but log event if necessary:
+ TagTools::printLog("$0: Ignoring unknown option '$file'.") if(($file=~m/^\-/) && ($DEBUG_ON));
+
 
 ## supress warnings and stderr output if debug logging is disabled:
 open STDERR,'>','/dev/null' if (!$DEBUG_ON);
@@ -52,8 +52,12 @@ open STDERR,'>','/dev/null' if (!$DEBUG_ON);
 ## Check for cookie file:
 $tag2fname_last_format = "";
 $tag2fname_last_charset = "";
-(-r $COOKIE_FILE) ? require "$COOKIE_FILE" : print "$COOKIE_FILE cannot be read, does it exist?";
-
+if (-r $COOKIE_FILE){
+     eval "require \"$COOKIE_FILE\" ";
+     warn $@ if $@;
+} else {
+    print "$COOKIE_FILE cannot be read, does it exist?";
+}
 
 $f = Audio::TagLib::FileRef->new($file);
 
@@ -77,16 +81,18 @@ $info_ref = TagTools::getFileInfo($f);
 
  exit if (!defined(@data) or (scalar @data == 1));
 
+ @data = @{TagTools::removeTrailingSpaces(\@data)};
+
  ($format, $charset) = @data;
 
 $charset_arg = (defined($charset) && ($charset ne "")) ? "-c \"$charset\" " : "";
 
+
 ## Run the command:
 $command = "tag2fname -f \"$format\" " . $charset_arg;
 foreach $file(@ARGV){
- print `$command \"$file\"`;
+ print `$command \"$file\"` if($file!~/^-\w/);  #run if $file is not a command-line option
 }
-
 
 # Finally, update the settings in the cookie file:
 TagTools::updateCookieFile("tag2fname_last_format=$format", "tag2fname_last_charset=$charset");

@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 #
 # TagTools.pm
-# audiotagtools for linux - v0.42
+# audiotagtools for linux - v0.43a
 # V.Korol (vakorol@mail.ru)
 #
 # This is a module with useful variables and subroutines shared by audiotagtools scripts.
@@ -11,17 +11,18 @@ package TagTools;
 
     require Exporter;
     @ISA = qw (Exporter);
-    @EXPORT = qw (updateCookieFile readTag initCharset printLog getFileInfo);
+    @EXPORT = qw (updateCookieFile readTag initCharset printLog getFileInfo removeTrailingSpaces);
     @EXPORT_OK = qw ($VERSION $DEFAULT_CHARSET $COOKIE_FILE $DEBUG_ON $DEBUG_FILE);
 
     use utf8;
     use Encode;
+    use Encode::Byte;
     use Cwd;
-    
+
     use Audio::TagLib;
 
 ######################################################################################
-$VERSION = "0.42";
+$VERSION = "0.43a";
 $DEFAULT_CHARSET = "UTF-8";
 
 $home_dir = `echo ~`;
@@ -48,12 +49,20 @@ sub updateCookieFile {
 	$line=$_;
 	$line=~m/^\$([\w\_]+)\s*\=/;
 	$par=$1;
-	(exists($new_params{$par})) ? push(@data,"\$$par=\"$new_params{$par}\";\n") : push(@data,$_);
+	if(exists($new_params{$par})){
+	    push(@data,"\$$par=\"$new_params{$par}\";\n");
+	    delete $new_params{$par};
+	} else {
+	    push(@data,$_);
+	}
     }
     close cf;
 
     open cf, ">$COOKIE_FILE";
      print cf join(/\n/,@data);
+     foreach $par(keys(%new_params)){
+      print cf "\$$par=\"$new_params{$par}\";\n";
+     }
     close cf;
 }
 
@@ -66,7 +75,10 @@ sub readTag {
     $charset = initCharset($charset);
 
     {
-	local $SIG{__WARN__}=sub{};   #supress warnings like "Malformed UTF-8 character..."
+        #supress warnings like "Malformed UTF-8 character...":
+          local $SIG{__WARN__} = ($DEBUG_ON) ? 
+                sub{warn print (localtime()." -- ".$0." in call to ".(caller(0))[3])." -- ".@_} : 
+                 sub{};
 
         ## Read the data as Latin1:
           $title   = $f->tag()->title()  ->toCString();
@@ -111,7 +123,7 @@ sub readTag {
 
 	    ## Remove non-printable characters:
 	    $tag[$n]=~s/[\f\n\r\t]/\s/g;
-	    ## Substitute semicolon with colon (UI::CDialog can't show the latter):
+	    ## Substitute semicolon with colon (UI::CDialog can't show the former):
 	    $tag[$n]=~s/\"/\'/g;
 
     	    $n++;
@@ -160,6 +172,19 @@ sub getFileInfo {
 
     my @fileInfo = ($audio_length, $audio_bitrate, $audio_sample, $cwd, $short_filename);
     return \@fileInfo;
+}
+
+
+######################################################################################
+sub removeTrailingSpaces {
+    my @data = @{$_[0]};  # the 1st arg is a ref to an array
+
+    # correct the spaces bug from CDialog - remove traling spaces:
+    foreach $item(@data){
+      $item =~ s/\s+$//;
+    }
+    
+    return \@data;
 }
 
 
@@ -219,4 +244,3 @@ This module is free software. You can modify and distribute as part of the TagTo
 package.
 
 =cut
-
