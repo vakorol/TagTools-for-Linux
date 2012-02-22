@@ -113,6 +113,10 @@ foreach my $arg (@ARGV){
 
     ## read tags:
     $tag_ref = TagTools::readTag($f, $charset);
+    if((join(//,@$tag_ref) eq "00") && !$PROCESS_UNTAGGED){
+        print ".  no tag, skipping (use -u to process untagged files).\n";
+        next;
+    }
     ($title, $artist, $album, $year, $track, $genre, $comment) = @$tag_ref;
 
 
