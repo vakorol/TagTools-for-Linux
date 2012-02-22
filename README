@@ -96,6 +96,15 @@ This module requires these other modules and libraries:
    Audio-TagLib-1.50_01  (http://search.cpan.org/dist/Audio-TagLib/lib/Audio/TagLib.pm)
    UI::Dialog		 (http://ui-dialog.sourceforge.net/)
 
+NOTE: in some cases Audio::TagLib won't install properly, 'make test' fails and, hence
+TagTools won't work, too. Although, this file is related only to the installation of
+TagTools, a hint can be given:
+  1. tar -jxvf Audio-TagLib-1.50_01
+  2. cd ./Audio-TagLib-1.50_01/xs
+  3. find . -name '*.xs' -print | xargs sed -i 's/MODULE = /MODULE = Audio::/g'
+     find . -name '*.xs' -print | xargs sed -i 's/PACKAGE = /PACKAGE = Audio::/g'
+After that, Audio::TagLib should install properly.
+
 
 -------------------------
 COPYRIGHT AND LICENCE

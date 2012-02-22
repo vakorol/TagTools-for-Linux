@@ -39,7 +39,8 @@ WriteMakefile(
 			      script/batchtag.dialog) ],
     PREREQ_PM         => {}, # e.g., Module::Name => 1.1
     ($] >= 5.005 ?     ## Add these new keywords supported since 5.005
-      (ABSTRACT_FROM  => 'lib/TagTools.pm', # retrieve abstract from module
+#      (ABSTRACT_FROM  => 'lib/TagTools.pm', # retrieve abstract from module
+      (ABSTRACT	      => 'A set of scripts to manipulate audio tags',
        AUTHOR         => 'V.Korol <vakorol@mail.ru>') : ()),
 );
 
