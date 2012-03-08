@@ -1,6 +1,7 @@
 v0.43a  (22 Feb 2012):
  ! bugfix: tag2fname.dialog and fname2tag.dialog crash or disbehave on missing cookie file, or on incorrect
    cookie file syntax;
+ ! crashes on unsupported file formats;
  + tagedit.dialog now informs on editing read-only files;
  = removed the warning about missing abstract in Makefile.PL, updated the README;
  = the -u option in tag2fname now works correctly (did nothing before);
