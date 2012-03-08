@@ -103,10 +103,13 @@ if ($file eq ""){
 $charset_arg = (defined($charset) && ($charset ne "")) ? "-c \"$charset\" " : "";
 
 
+## escape special characters:
+$file=~s/([\@\$\%])/\\\1/g;
+
 ## Run the command:
 $command = "tag2fname -f \"$format\" " . $charset_arg;
 foreach $file(@ARGV){
- print `$command \"$file\"` if($file!~/^-\w/);  #run if $file is not a command-line option
+ print `$command \'$file\'` if($file!~/^-\w/);  #run if $file is not a command-line option
 }
 
 # Finally, update the settings in the cookie file:
