@@ -1,11 +1,12 @@
 #!/usr/bin/perl
 # tag2fname
-#  TagTools for linux v0.42
+#  TagTools for linux v0.43a
 #  V.Korol 2011
 ############################## 
 
 use Encode;
 use utf8;
+use File::Copy;
 
 use TagTools qw(:DEFAULT $DEFAULT_CHARSET $VERSION $DEBUG_ON $DEBUG_FILE);
 use Audio::TagLib;
@@ -108,7 +109,14 @@ foreach my $arg (@ARGV){
         next;
     }
 
+
     my $f = Audio::TagLib::FileRef->new($file);
+
+    if( (!defined($f->file()) || !$f->file()->isValid()) ){
+	TagTools::printLog("$file -- unsupported format, skipping\n");
+	print(".  unsupported format, skipping\n");
+	next;
+    }
 
 
     ## read tags:
@@ -117,6 +125,7 @@ foreach my $arg (@ARGV){
         print ".  no tag, skipping (use -u to process untagged files).\n";
         next;
     }
+
     ($title, $artist, $album, $year, $track, $genre, $comment) = @$tag_ref;
 
 
@@ -133,7 +142,7 @@ foreach my $arg (@ARGV){
 #    };
 
 
-    $action = $KEEP_ORIGINAL ? "cp" : "mv";
+    $action = $KEEP_ORIGINAL ? "copy" : "move";
 
 
     $newfname=$format.$extension;
@@ -144,15 +153,15 @@ foreach my $arg (@ARGV){
     $newfname=~s/\%g/$genre/g;
     $newfname=~s/\%y/$year/g;
 
-    $newfname=~s/([\\\/\"\`\'\?])/_/g; 	#` <-this backquote is for proper colors display in mc-edit :)
-
-
+    $newfname=~s/([\\\/\"\`\'\?])/_/g; 		#` <-this backquote is to avoid black background in mc-edit :)
     if($file eq $newfname){
      print "  filename already in desired format, skipping.\n";
      next;
     }
 
-       system("$action \"$file\" \"$newfname\"") if(!(($artist eq "")&&($title eq "")));
+
+#       system("$action \"$file\" \"$newfname\"") if(!(($artist eq "")&&($title eq "")));
+   &{$action}($file, $newfname) if(!(($artist eq "")&&($title eq "")));
 
     print "  done\n";
 

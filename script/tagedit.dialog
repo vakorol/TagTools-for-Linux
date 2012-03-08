@@ -78,6 +78,13 @@ foreach my $arg (@ARGV){
 
     $f = Audio::TagLib::FileRef->new($file);
 
+    if( (!defined($f->file()) || !$f->file()->isValid()) ){
+	TagTools::printLog("$file -- unsupported format, skipping\n");
+	print("$file -- unsupported format, skipping\n");
+	next;
+    }
+
+
     ## read tags:
     $tag_ref = TagTools::readTag($f, $charset);
     ($title, $artist, $album, $year, $track, $genre, $comment) = @$tag_ref;

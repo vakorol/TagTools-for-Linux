@@ -30,6 +30,8 @@ sub displayHelp {
 
 ######################################################################################
 
+my $arg_num = 0;
+
 $file = $ARGV[0];
 if ($file eq "-d"){	# -d option: turn on debug logging
   $DEBUG_ON=1;
@@ -37,8 +39,9 @@ if ($file eq "-d"){	# -d option: turn on debug logging
   TagTools::printLog("Run $0") if($DEBUG_ON);
   open STDERR,'>>',$DEBUG_FILE;
   $SIG{__WARN__} = sub {warn print (localtime()." -- ".@_)};
-#  $SIG{__DIE__}  = sub {die  print (localtime()." -- ".@_)};
+  $SIG{__DIE__}  = sub {die  print (localtime()." -- ".@_)};
   $file = $ARGV[1];
+  $arg_num = 1;
 }
 if ($file=~m/^\-/) {	# ignore unknown option, but log event if necessary
  TagTools::printLog("$0: Ignoring unknown option '$file.'") if($DEBUG_ON);
@@ -56,7 +59,6 @@ $batchtag_last_album = "";
 $batchtag_last_format = "";
 $batchtag_last_year = "";
 $batchtag_last_charset = "";
-#(-r $COOKIE_FILE) ? require "$COOKIE_FILE" : print "$COOKIE_FILE cannot be read, does it exist?";
 if (-r $COOKIE_FILE){
      eval "require \"$COOKIE_FILE\" ";
      warn $@ if $@;
@@ -67,8 +69,21 @@ if (-r $COOKIE_FILE){
 
 my $f = Audio::TagLib::FileRef->new($file);
 
+## skip invalid files - otherwise we won't be able to display audio properties in the dialog:
+while ( ((!defined($f->file())) || (!$f->file()->isValid())) && ($file ne "")){
+    $arg_num++;
+    $file = $ARGV[$arg_num];
+    last if($file eq "");
+    $f = Audio::TagLib::FileRef->new($file);
+}
+if ($file eq ""){
+    TagTools::printLog("$0: no valid audio file selected, aborting.") if($DEBUG_ON);
+    print("No valid audio file selected, aborting.\n");
+    exit;
+}
+
+
 ## read tech info, current dir and short filename
-#$info_ref = TagTools::getFileInfo($f);
 ($audio_length, $audio_bitrate, $audio_sample, $backtitle, $short_filename) = 
     @{TagTools::getFileInfo($f)};
 
@@ -91,13 +106,10 @@ my $f = Audio::TagLib::FileRef->new($file);
                                  [ 'Charset:', 			  8, 1 ], [ "$batchtag_last_charset", 8, 10, 25, 0 ] ]
                     );
 
- exit if (!defined(@data) or (scalar @data == 1));
+ exit if (!@data or (scalar @data == 1));
 
 
   # correct the spaces bug from CDialog - remove traling spaces:
-#  foreach $item(@data){
-#    $item =~ s/\s+$//;
-#  }
   @data = @{TagTools::removeTrailingSpaces(\@data)};
 
  ($artist, $album, $year, $genre, $comment, $format, $charset) = @data;

@@ -61,6 +61,20 @@ if (-r $COOKIE_FILE){
 
 $f = Audio::TagLib::FileRef->new($file);
 
+## skip invalid files - otherwise we won't be able to display audio properties in the dialog:
+while ( ((!defined($f->file())) || (!$f->file()->isValid())) && ($file ne "")){
+    $arg_num++;
+    $file = $ARGV[$arg_num];
+    last if($file eq "");
+    $f = Audio::TagLib::FileRef->new($file);
+}
+if ($file eq ""){
+    TagTools::printLog("$0: no valid audio file selected, aborting.") if($DEBUG_ON);
+    print("No valid audio file selected, aborting.\n");
+    exit;
+}
+
+
 ## read tech info, current dir and short filename
 #$info_ref = TagTools::getFileInfo($f);
 ($audio_length, $audio_bitrate, $audio_sample, $backtitle, $short_filename) =
@@ -80,7 +94,7 @@ $f = Audio::TagLib::FileRef->new($file);
                                  [ 'Charset:', 2, 1 ], [ "$tag2fname_last_charset", 2, 10, 25, 0 ] ]
                     );
 
- exit if (!defined(@data) or (scalar @data == 1));
+ exit if (!@data or (scalar @data == 1));
 
  @data = @{TagTools::removeTrailingSpaces(\@data)};
 

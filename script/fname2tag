@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 # fname2tag
-#  TagTools for Linux v0.42
+#  TagTools for Linux v0.43a
 #  V.Korol 2011
 ############################## 
 
@@ -79,6 +79,7 @@ foreach $arg(@ARGV){
      }
     ######################################################################################
 
+
     $num_of_files++;
 
     # Consider anything rather than "-x" as audio file name: 
@@ -100,9 +101,13 @@ foreach $arg(@ARGV){
     };
     ######################################################################################
 
-
     my $f = Audio::TagLib::FileRef->new($file);
-
+    
+    if( (!defined($f->file()) || !$f->file()->isValid()) ){
+	TagTools::printLog("$file --  unsupported format, skipping\n");
+	print(".  unsupported format, skipping\n");
+	next;
+    }
 
     ###### examine the format string and convert it into match pattern: ##########
     $pattern=$format;
