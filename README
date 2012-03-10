@@ -1,6 +1,17 @@
 TagTools version 0.43a
 =====================
 
+CONTENTS:
+    1. DESCRIPTION
+    2. INSTALLATION
+    3. DEPENDENCIES
+    4. KNOWN ISSUES
+    5. COPYRIGHT AND LICENCE
+
+
+-------------------------
+1. DESCRIPTION
+
 TagTools is a package of scripts which can be used to manipulate
 audio tags of various audio formats (MP3, OGG, FLAC etc). In fact,
 it is an implementation of the Audio::TagLib library 
@@ -33,7 +44,7 @@ The following scripts are included:
 
 
 -------------------------
-INSTALLATION
+2. INSTALLATION
 
 To install the package type the following:
 
@@ -89,7 +100,7 @@ Use the shortcuts:
 
 
 -------------------------
-DEPENDENCIES
+3. DEPENDENCIES
 
 This module requires these other modules and libraries:
 
@@ -107,7 +118,18 @@ After that, Audio::TagLib should install properly.
 
 
 -------------------------
-COPYRIGHT AND LICENCE
+4. KNOWN ISSUES
+ - The scripts change id3vl tags preferrably to id3v2, so editing a tag won't create id3v2, only id3v1.
+    Maybe this will be fixed in later versions;
+ - There is a strange issue with the .dialogs crashing on field value equal to "--" (wtf?!)
+    This is probably related to some bug in UI::Dialog::Backend::CDialog::form().
+ - The keys "home","end" and backspace don't work in dialogs. This is a limitation of 
+    UI::Dialog::Backend::CDialog::form();
+ - There can be problems (incorrect display) with the symbol $ in tags. This is probably a bug of Taglib 1.5;
+
+
+-------------------------
+5. COPYRIGHT AND LICENCE
 
 Copyright (C) 2011 by V.Korol <vakorol@mail.ru>.
 
