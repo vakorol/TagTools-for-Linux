@@ -138,6 +138,9 @@ $format =~ s/\s+$//;
  $fname2tag_command = "fname2tag -f \"$format\" $recode_option ";
 
 foreach $file (@ARGV) {
+    ## escape special characters
+    $file=~s/([\@\$\%\'\"])/\\\1/g;
+
     print "processing $file";
 
     ## run fname2tag if format specified

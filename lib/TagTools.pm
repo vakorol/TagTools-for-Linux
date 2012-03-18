@@ -169,6 +169,7 @@ sub getFileInfo {
     my $cwd = getcwd();
     my $short_filename = $f->file()->name();
     $short_filename =~ s/^.+?\/([^\/]+)$/$1/;  #extract only the filename from the full path
+    $short_filename =~ s/\"/\\\"/g;  #extract only the filename from the full path
 
     my @fileInfo = ($audio_length, $audio_bitrate, $audio_sample, $cwd, $short_filename);
     return \@fileInfo;

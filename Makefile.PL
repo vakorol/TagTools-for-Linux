@@ -1,6 +1,5 @@
 # tagtools
 #  Makefile.PL
-#  use this script to create a makefile for the installation.
 #   Author: V.Korol
 ##################################
 

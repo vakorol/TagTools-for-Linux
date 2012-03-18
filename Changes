@@ -1,6 +1,8 @@
-v0.43a  (09 Mar 2012):
+v0.43a  (18 Mar 2012):
  ! bugfix: tag2fname.dialog and fname2tag.dialog crash or disbehave on missing cookie file, or on incorrect
    cookie file syntax;
+ ! bugfix: tag2fname.dialog fails to process file names containing single quotes;
+ ! bugfix: all scripts crash on file names with double quotes;
  ! bugfix: crashes on unsupported file formats;
  ! bugfix: tag2fname.dialog fails to process file names containing @, $ or %.
  + tagedit.dialog now informs on editing read-only files;
@@ -13,7 +15,7 @@ v0.42  (21 Nov 2011):
  ! bugfix: crashes and wrong output while processing tags containing non-printable characters;
  ! bugfix: crash on tags containing semicolons;
  ! bugfix: tagedit.dialog adds trailing spaces in tag fields sometimes;
- ! got rid of several occasional warning messages;
+ = got rid of several occasional warning messages;
  = tag2fname.dialog now displays technical audio info as well as the other dialogs;
  = track length is now printed with leading zeroes in mins and secs;
  = somewhat debug logging option added (the output can still not very informative, though);
@@ -24,3 +26,8 @@ v0.41  (20 Oct 2011):
    thus sometimes resulting in tag erasure in batchtag.dialog;
  + Installation via Makefile;
  = some code optimization done;
+ - handle id3v2 tags as well as id3v1;
+ - try to fix a strange issue with UI::Dialog::Backend::CDialog::form() crashing on field value equal to "--" (wtf?!)
+ - fix UI::Dialog::Backend::CDialog::form() to be able to use "home","end" and backspace buttons in dialogs;
+ - fix UI::Dialog::Backend::CDialog::form() bug related to escaping of $
+ - problems with $ in tags (this is a bug of Taglib 1.5);
