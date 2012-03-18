@@ -125,6 +125,10 @@ sub readTag {
 	    $tag[$n]=~s/[\f\n\r\t]/\s/g;
 	    ## Substitute semicolon with colon (UI::CDialog can't show the former):
 	    $tag[$n]=~s/\"/\'/g;
+	    ## UI::Dialog::Backend::CDialog::form() cannot print the dollar char correctly,
+	    ## do for now we'll just replace it with a ?
+	    $tag[$n]=~s/\$/\?/g;
+	    $tag[$n]=~s/\\/\\\\/g;
 
     	    $n++;
         }
