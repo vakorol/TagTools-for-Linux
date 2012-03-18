@@ -5,7 +5,10 @@ v0.43a  (18 Mar 2012):
  ! bugfix: all scripts crash on file names with double quotes;
  ! bugfix: crashes on unsupported file formats;
  ! bugfix: tag2fname.dialog fails to process file names containing @, $ or %.
+ ! bugfix: tagedit.dialog crashes on \ in tags;
  + tagedit.dialog now informs on editing read-only files;
+ = the dialogs now substitute the dollar sign in tags with a question char, because currently CDialog can't
+   display $ correctly;
  = removed the warning about missing abstract in Makefile.PL, updated the README;
  = the -u option in tag2fname now works correctly (did nothing before);
 

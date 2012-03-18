@@ -122,10 +122,11 @@ After that, Audio::TagLib should install properly.
  - The scripts change id3vl tags preferrably to id3v2, so editing a tag won't create id3v2, only id3v1.
     Maybe this will be fixed in later versions;
  - There is a strange issue with the .dialogs crashing on field value equal to "--" (wtf?!)
-    This is probably related to some bug in UI::Dialog::Backend::CDialog::form().
+    This is probably related to some bug in .
  - The keys "home","end" and backspace don't work in dialogs. This is a limitation of 
     UI::Dialog::Backend::CDialog::form();
- - There can be problems (incorrect display) with the symbol $ in tags. This is probably a bug of Taglib 1.5;
+ - The dollar sign is masked by ? in dialogs. This is done because of an issue in 
+    UI::Dialog::Backend::CDialog::form();
 
 
 -------------------------
