@@ -50,13 +50,12 @@ open STDERR,'>','/dev/null' if (!$DEBUG_ON);
 
 
 ## Check for cookie file:
-$tag2fname_last_format = "";
-$tag2fname_last_charset = "";
 if (-r $COOKIE_FILE){
      eval "require \"$COOKIE_FILE\" ";
 #     warn $@ if $@;
 } else {
     print "$COOKIE_FILE cannot be read, does it exist?";
+    TagTools::printLog "$COOKIE_FILE cannot be read, does it exist?";
 }
 
 $f = Audio::TagLib::FileRef->new($file);
@@ -75,8 +74,14 @@ if ($file eq ""){
 }
 
 
+## UI::Dialog::Backend::CDialog::form() cannot print the dollar char correctly,
+## do for now we'll just replace it with a ?
+ foreach $cookie_field (($tag2fname_last_format, $tag2fname_last_charset)) {
+    $cookie_field =~ s/\$/\?/g;
+ }
+
+
 ## read tech info, current dir and short filename
-#$info_ref = TagTools::getFileInfo($f);
 ($audio_length, $audio_bitrate, $audio_sample, $backtitle, $short_filename) =
    @{TagTools::getFileInfo($f)};
 
@@ -96,9 +101,9 @@ if ($file eq ""){
 
  exit if (!@data or (scalar @data == 1));
 
- @data = @{TagTools::removeTrailingSpaces(\@data)};
-
- ($format, $charset) = @data;
+# @data = @{TagTools::removeTrailingSpaces(\@data)};
+# ($format, $charset) = @data;
+ ($format, $charset) = @{TagTools::removeTrailingSpaces(\@data)};
 
 $charset_arg = (defined($charset) && ($charset ne "")) ? "-c \"$charset\" " : "";
 
@@ -109,7 +114,7 @@ foreach $file(@ARGV){
  ## run if $file is not a command-line option:
  if($file!~/^-\w/){
      ## escape special characters:
-     $file=~s/([\@\$\%])/\\\1/g;
+#     $file=~s/([\$])/\\\1/g;
      $file=~s/\'/\'\\'\'/g;
      print `$command \'$file\'`;
  }

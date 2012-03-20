@@ -1,10 +1,12 @@
-v0.43a  (18 Mar 2012):
+v0.43a  (20 Mar 2012):
  ! bugfix: tag2fname.dialog and fname2tag.dialog crash or disbehave on missing cookie file, or on incorrect
    cookie file syntax;
  ! bugfix: tag2fname.dialog fails to process file names containing single quotes;
+ ! bugfix: tag2fname and fname2tag exit with "unknown charset ''" when run without -c option;
  ! bugfix: all scripts crash on file names with double quotes;
  ! bugfix: crashes on unsupported file formats;
- ! bugfix: tag2fname.dialog fails to process file names containing @, $ or %.
+ ! bugfix: some of the scripts fail to process file names containing $, % or @.
+ ! bugfix: batchtag.dialog resulted in segmentation fault when run with -d option;
  ! bugfix: tagedit.dialog crashes on \ in tags;
  + tagedit.dialog now informs on editing read-only files;
  = the dialogs now substitute the dollar sign in tags with a question char, because currently CDialog can't

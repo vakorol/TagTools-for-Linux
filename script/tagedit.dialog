@@ -89,6 +89,13 @@ foreach my $arg (@ARGV){
     $tag_ref = TagTools::readTag($f, $charset);
     ($title, $artist, $album, $year, $track, $genre, $comment) = @$tag_ref;
 
+    ## UI::Dialog::Backend::CDialog::form() cannot print the dollar char correctly,
+    ## do for now we'll just replace it with a ?
+     foreach $field (($title, $artist, $album, $format, $year, $track, $genre, $comment)) {
+        $field =~ s/\$/\?/g;
+#        $field =~ s/\x24/\\\x24/g;
+     }
+
     ## read tech info, current dir and short filename
     $info_ref = TagTools::getFileInfo($f);
     ($audio_length, $audio_bitrate, $audio_sample, $backtitle, $short_filename) = @$info_ref;

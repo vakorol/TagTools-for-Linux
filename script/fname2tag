@@ -79,6 +79,7 @@ foreach $arg(@ARGV){
      }
     ######################################################################################
 
+    $charset=$DEFAULT_CHARSET if(($charset eq "") || (!defined($charset)));
 
     $num_of_files++;
 

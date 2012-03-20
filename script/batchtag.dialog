@@ -39,7 +39,7 @@ if ($file eq "-d"){	# -d option: turn on debug logging
   TagTools::printLog("Run $0") if($DEBUG_ON);
   open STDERR,'>>',$DEBUG_FILE;
   $SIG{__WARN__} = sub {warn print (localtime()." -- ".@_)};
-  $SIG{__DIE__}  = sub {die  print (localtime()." -- ".@_)};
+#  $SIG{__DIE__}  = sub {die  print (localtime()." -- ".@_)};
   $file = $ARGV[1];
   $arg_num = 1;
 }
@@ -54,16 +54,12 @@ open STDERR,'>','/dev/null' if (!$DEBUG_ON);
 
 
 ## Check for cookie file:
-$batchtag_last_artist = "";
-$batchtag_last_album = "";
-$batchtag_last_format = "";
-$batchtag_last_year = "";
-$batchtag_last_charset = "";
 if (-r $COOKIE_FILE){
      eval "require \"$COOKIE_FILE\" ";
      warn $@ if $@;
 } else {
     print "$COOKIE_FILE cannot be read, does it exist?";
+    TagTools::printLog "$COOKIE_FILE cannot be read, does it exist?" if($DEBUG_ON);
 }
 
 
@@ -88,6 +84,14 @@ if ($file eq ""){
     @{TagTools::getFileInfo($f)};
 
 
+## UI::Dialog::Backend::CDialog::form() cannot print the dollar char correctly,
+## do for now we'll just replace it with a ?
+ foreach $cookie_field (($batchtag_last_artist, $batchtag_last_album, $batchtag_last_format, 
+			 $batchtag_last_year, $batchtag_last_charset)) {
+    $cookie_field =~ s/\$/\?/g;
+ }
+
+
 ###################     INIT THE DIALOG        ###########################################
   my $d = new UI::Dialog::Backend::CDialog ( backtitle => "$backtitle",
                                              title => "Batch tag edit" );
@@ -110,9 +114,10 @@ if ($file eq ""){
 
 
   # correct the spaces bug from CDialog - remove traling spaces:
-  @data = @{TagTools::removeTrailingSpaces(\@data)};
+#  @data = @{TagTools::removeTrailingSpaces(\@data)};
+# ($artist, $album, $year, $genre, $comment, $format, $charset) = @data;
+ ($artist, $album, $year, $genre, $comment, $format, $charset) = @{TagTools::removeTrailingSpaces(\@data)};
 
- ($artist, $album, $year, $genre, $comment, $format, $charset) = @data;
 
   $not_all_fields_empty=$artist.$album.$year.$genre.$comment;
 
@@ -123,11 +128,9 @@ $recode_option = ($charset ne $DEFAULT_CHARSET) ? "-c $charset" : "";
  ## store recoded tags:
   ($rec_artist,$rec_album,$rec_year,$rec_comment,$rec_genre) = ($artist,$album,$year,$comment,$genre); 
   if ($charset ne $DEFAULT_CHARSET) {
-      Encode::from_to($rec_artist,"$DEFAULT_CHARSET","$charset");
-      Encode::from_to($rec_album,"$DEFAULT_CHARSET","$charset");
-      Encode::from_to($rec_year,"$DEFAULT_CHARSET","$charset");
-      Encode::from_to($rec_comment,"$DEFAULT_CHARSET","$charset");
-      Encode::from_to($rec_genre,"$DEFAULT_CHARSET","$charset");
+    foreach $rec_field (($rec_artist,$rec_album,$rec_year,$rec_comment,$rec_genre)) {
+      Encode::from_to($rec_field,"$DEFAULT_CHARSET","$charset");
+    }
   }
 
 
@@ -139,9 +142,11 @@ $format =~ s/\s+$//;
 
 foreach $file (@ARGV) {
     ## escape special characters
-    $file=~s/([\@\$\%\'\"])/\\\1/g;
+#    $file=~s/([\@\$\%\'\"])/\\\1/g;
 
-    print "processing $file";
+    next if($file=~m/^-\w/);
+
+    print "processing \"$file\"";
 
     ## run fname2tag if format specified
     if ($format ne ""){

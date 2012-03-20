@@ -100,6 +100,7 @@ foreach my $arg (@ARGV){
     $file=~m/(\.[\w\d]+)$/;  # save the file extension
     my $extension=$1;
 
+    $charset=$DEFAULT_CHARSET if(($charset eq "") || (!defined($charset)));
 
     ######################################################################################
      print "processing \"$file\".";
