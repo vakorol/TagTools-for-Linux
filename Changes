@@ -13,6 +13,7 @@ v0.43a  (20 Mar 2012):
    display $ correctly;
  = removed the warning about missing abstract in Makefile.PL, updated the README;
  = the -u option in tag2fname now works correctly (did nothing before);
+ = fname2tag now does not run on empty -f format;
 
 --------------------------------------------------------------------------
 v0.42  (21 Nov 2011):

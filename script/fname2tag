@@ -81,6 +81,8 @@ foreach $arg(@ARGV){
 
     $charset=$DEFAULT_CHARSET if(($charset eq "") || (!defined($charset)));
 
+    displayHelp() if($format eq "");
+
     $num_of_files++;
 
     # Consider anything rather than "-x" as audio file name: 
