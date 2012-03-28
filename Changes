@@ -1,4 +1,4 @@
-v0.43a  (20 Mar 2012):
+v0.43a  (28 Mar 2012):
  ! bugfix: tag2fname.dialog and fname2tag.dialog crash or disbehave on missing cookie file, or on incorrect
    cookie file syntax;
  ! bugfix: tag2fname.dialog fails to process file names containing single quotes;
@@ -9,6 +9,7 @@ v0.43a  (20 Mar 2012):
  ! bugfix: batchtag.dialog resulted in segmentation fault when run with -d option;
  ! bugfix: tagedit.dialog crashes on \ in tags;
  + tagedit.dialog now informs on editing read-only files;
+ = increased maximum number of symbols per tag field in batchtag.dialog;
  = the dialogs now substitute the dollar sign in tags with a question char, because currently CDialog can't
    display $ correctly;
  = removed the warning about missing abstract in Makefile.PL, updated the README;
