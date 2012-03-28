@@ -164,7 +164,7 @@ foreach $arg(@ARGV){
 
     $f->save();
 
-    print "  done\n";
+    print ".  done\n";
 
 } 
 

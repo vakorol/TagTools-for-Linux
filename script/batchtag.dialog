@@ -99,15 +99,15 @@ if ($file eq ""){
   my @data = $d->form( text => "$short_filename\n Length: $audio_length\n Bitrate: $audio_bitrate kb/sec,  $audio_sample Hz",
 		       literal => 1,
 		       height => 18,
-		       width => 51,
+		       width => 55,
 		       formheight => 8,
-                       list => [ [ 'Artist:',  			  1, 1 ], [ "$batchtag_last_artist",  1, 10, 35, 0 ],
-                                 [ 'Album:',   			  2, 1 ], [ "$batchtag_last_album",   2, 10, 35, 0 ],
-                                 [ 'Year:',    			  3, 1 ], [ "$batchtag_last_year",    3, 10, 35, 0 ],
-                                 [ 'Genre:',   			  4, 1 ], [ "", 		      4, 10, 35, 0 ],
-                                 [ 'Comment:', 			  5, 1 ], [ "", 		      5, 10, 35, 0 ],
-                                 [ 'Extract tags from filename:', 6, 1 ], [ "$batchtag_last_format",  7, 1,  44, 0 ],
-                                 [ 'Charset:', 			  8, 1 ], [ "$batchtag_last_charset", 8, 10, 25, 0 ] ]
+                       list => [ [ 'Artist:',  			  1, 1 ], [ "$batchtag_last_artist",  1, 10, 39, 100 ],
+                                 [ 'Album:',   			  2, 1 ], [ "$batchtag_last_album",   2, 10, 39, 100 ],
+                                 [ 'Year:',    			  3, 1 ], [ "$batchtag_last_year",    3, 10, 39, 20 ],
+                                 [ 'Genre:',   			  4, 1 ], [ "", 		      4, 10, 39, 100 ],
+                                 [ 'Comment:', 			  5, 1 ], [ "", 		      5, 10, 39, 200 ],
+                                 [ 'Extract tags from filename:', 6, 1 ], [ "$batchtag_last_format",  7, 1,  48, 100 ],
+                                 [ 'Charset:', 			  8, 1 ], [ "$batchtag_last_charset", 8, 10, 29, 20 ] ]
                     );
 
  exit if (!@data or (scalar @data == 1));

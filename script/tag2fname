@@ -164,7 +164,7 @@ foreach my $arg (@ARGV){
 #       system("$action \"$file\" \"$newfname\"") if(!(($artist eq "")&&($title eq "")));
    &{$action}($file, $newfname) if(!(($artist eq "")&&($title eq "")));
 
-    print "  done\n";
+    print ".  done\n";
 
 }
 
