@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 # tag2fname.dialog
-#  TagTools for linux v0.43a
-#  V.Korol 2011
+#  TagTools for linux v0.43
+#  V.Korol 2012
 ############################## 
 
 use Switch;

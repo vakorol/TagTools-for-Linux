@@ -1,4 +1,4 @@
-v0.43a  (28 Mar 2012):
+v0.43  (10 Apr 2012):
  ! bugfix: tag2fname.dialog and fname2tag.dialog crash or disbehave on missing cookie file, or on incorrect
    cookie file syntax;
  ! bugfix: tag2fname.dialog fails to process file names containing single quotes;

@@ -1,4 +1,4 @@
-TagTools version 0.43a
+TagTools version 0.43
 =====================
 
 CONTENTS:
@@ -132,7 +132,7 @@ After that, Audio::TagLib should install properly.
 -------------------------
 5. COPYRIGHT AND LICENCE
 
-Copyright (C) 2011 by V.Korol <vakorol@mail.ru>.
+Copyright (C) 2012 by V.Korol <vakorol@mail.ru>.
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.10.1 or,
